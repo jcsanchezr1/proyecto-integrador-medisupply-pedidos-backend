@@ -9,7 +9,7 @@ from .settings import get_config
 config = get_config()
 
 # URL de conexión a la base de datos
-DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://medisupply_local_user:medisupply_local_password@localhost:5432/medisupply_local_db')
+DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql+psycopg://medisupply_local_user:medisupply_local_password@localhost:5432/medisupply_local_db')
 
 # Crear engine
 engine = create_engine(DATABASE_URL, echo=config.DEBUG)
