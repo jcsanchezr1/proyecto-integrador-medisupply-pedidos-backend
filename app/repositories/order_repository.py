@@ -7,13 +7,14 @@ from sqlalchemy.exc import SQLAlchemyError
 from ..models.order import Order
 from ..models.order_item import OrderItem
 from ..models.db_models import OrderDB, OrderItemDB
+from .base_repository import BaseRepository
 
 
-class OrderRepository:
+class OrderRepository(BaseRepository):
     """Repositorio para manejo de pedidos"""
     
     def __init__(self, session: Session):
-        self.session = session
+        super().__init__(session)
     
     def get_all(self) -> List[Order]:
         """Obtiene todos los pedidos"""
@@ -47,13 +48,81 @@ class OrderRepository:
         except SQLAlchemyError as e:
             raise Exception(f"Error al obtener pedidos del vendedor: {str(e)}")
     
-    def delete_all(self) -> bool:
+    def create(self, order: Order) -> Order:
+        """Crea un nuevo pedido"""
+        try:
+            db_order = OrderDB(
+                order_number=order.order_number,
+                client_id=order.client_id,
+                vendor_id=order.vendor_id,
+                status=order.status,
+                scheduled_delivery_date=order.scheduled_delivery_date,
+                assigned_truck=order.assigned_truck
+            )
+            self.session.add(db_order)
+            self.session.commit()
+            self.session.refresh(db_order)
+            return self._db_to_model(db_order)
+        except SQLAlchemyError as e:
+            self.session.rollback()
+            raise Exception(f"Error al crear pedido: {str(e)}")
+    
+    def get_by_id(self, order_id: int) -> Optional[Order]:
+        """Obtiene un pedido por ID"""
+        try:
+            db_order = self.session.query(OrderDB).filter(OrderDB.id == order_id).first()
+            if db_order:
+                return self._db_to_model(db_order)
+            return None
+        except SQLAlchemyError as e:
+            raise Exception(f"Error al obtener pedido: {str(e)}")
+    
+    def update(self, order: Order) -> Order:
+        """Actualiza un pedido"""
+        try:
+            db_order = self.session.query(OrderDB).filter(OrderDB.id == order.id).first()
+            if not db_order:
+                raise Exception("Pedido no encontrado")
+            
+            db_order.order_number = order.order_number
+            db_order.client_id = order.client_id
+            db_order.vendor_id = order.vendor_id
+            db_order.status = order.status
+            db_order.scheduled_delivery_date = order.scheduled_delivery_date
+            db_order.assigned_truck = order.assigned_truck
+            
+            self.session.commit()
+            return self._db_to_model(db_order)
+        except SQLAlchemyError as e:
+            self.session.rollback()
+            raise Exception(f"Error al actualizar pedido: {str(e)}")
+    
+    def delete(self, order_id: int) -> bool:
+        """Elimina un pedido por ID"""
+        try:
+            db_order = self.session.query(OrderDB).filter(OrderDB.id == order_id).first()
+            if not db_order:
+                return False
+            
+            # Eliminar items primero
+            self.session.query(OrderItemDB).filter(OrderItemDB.order_id == order_id).delete()
+            # Eliminar pedido
+            self.session.delete(db_order)
+            self.session.commit()
+            return True
+        except SQLAlchemyError as e:
+            self.session.rollback()
+            raise Exception(f"Error al eliminar pedido: {str(e)}")
+    
+    def delete_all(self) -> int:
         """Elimina todos los pedidos"""
         try:
+            # Contar pedidos antes de eliminar
+            count = self.session.query(OrderDB).count()
             self.session.query(OrderItemDB).delete()
             self.session.query(OrderDB).delete()
             self.session.commit()
-            return True
+            return count
         except SQLAlchemyError as e:
             self.session.rollback()
             raise Exception(f"Error al eliminar todos los pedidos: {str(e)}")

@@ -52,7 +52,7 @@ class OrderService:
         except Exception as e:
             raise OrderBusinessLogicError(f"Error al obtener todos los pedidos: {str(e)}")
     
-    def delete_all_orders(self) -> bool:
+    def delete_all_orders(self) -> int:
         """Elimina todos los pedidos"""
         try:
             return self.order_repository.delete_all()
