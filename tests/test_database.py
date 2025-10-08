@@ -162,7 +162,7 @@ class TestDatabase:
             importlib.reload(app.config.database)
             
             # Verificar que se usó la URL por defecto
-            expected_url = 'postgresql://medisupply_local_user:medisupply_local_password@localhost:5432/medisupply_local_db'
+            expected_url = 'postgresql+psycopg://medisupply_local_user:medisupply_local_password@localhost:5432/medisupply_local_db'
             assert app.config.database.DATABASE_URL == expected_url
     
     def test_engine_creation(self):
