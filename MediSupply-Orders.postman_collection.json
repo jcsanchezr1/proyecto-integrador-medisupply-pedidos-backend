@@ -1,0 +1,741 @@
+{
+  "info": {
+    "name": "MediSupply Orders API - Con Datos Aleatorios",
+    "description": "Colección para validar el servicio de pedidos MediSupply con datos aleatorios generados automáticamente",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response is JSON', function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "pm.test('Response is pong', function () {",
+              "    const responseText = pm.response.text().trim();",
+              "    pm.expect(responseText).to.eql('\"pong\"');",
+              "});",
+              "console.log('Health check validado correctamente');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url_local_pedidos}}/orders/ping",
+          "host": ["{{url_local_pedidos}}"],
+          "path": ["orders", "ping"]
+        }
+      }
+    },
+    {
+      "name": "Obtener Pedidos por Cliente - Datos Válidos",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const clientId = Math.floor(Math.random() * 100) + 1;",
+              "pm.environment.set('client_id_valido', clientId.toString());",
+              "console.log('Cliente ID generado:', clientId);"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response is JSON', function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "pm.test('Response has success structure', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('success');",
+              "    pm.expect(response).to.have.property('message');",
+              "    pm.expect(response).to.have.property('data');",
+              "    pm.expect(response.success).to.be.true;",
+              "});",
+              "pm.test('Data is an array', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.data).to.be.an('array');",
+              "});",
+              "console.log('Pedidos por cliente obtenidos correctamente');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url_local_pedidos}}/orders?client_id={{client_id_valido}}",
+          "host": ["{{url_local_pedidos}}"],
+          "path": ["orders"],
+          "query": [
+            {
+              "key": "client_id",
+              "value": "{{client_id_valido}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Obtener Pedidos por Vendedor - Datos Válidos",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const vendorId = Math.floor(Math.random() * 50) + 1;",
+              "pm.environment.set('vendor_id_valido', vendorId.toString());",
+              "console.log('Vendedor ID generado:', vendorId);"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response is JSON', function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "pm.test('Response has success structure', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('success');",
+              "    pm.expect(response).to.have.property('message');",
+              "    pm.expect(response).to.have.property('data');",
+              "    pm.expect(response.success).to.be.true;",
+              "});",
+              "pm.test('Data is an array', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.data).to.be.an('array');",
+              "});",
+              "console.log('Pedidos por vendedor obtenidos correctamente');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url_local_pedidos}}/orders?vendor_id={{vendor_id_valido}}",
+          "host": ["{{url_local_pedidos}}"],
+          "path": ["orders"],
+          "query": [
+            {
+              "key": "vendor_id",
+              "value": "{{vendor_id_valido}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Obtener Pedidos - Sin Parámetros (Error)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test('Response is JSON', function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "pm.test('Response has error structure', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('success');",
+              "    pm.expect(response).to.have.property('error');",
+              "    pm.expect(response.success).to.be.false;",
+              "});",
+              "pm.test('Error message is correct', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.details).to.include('client_id o vendor_id');",
+              "});",
+              "console.log('Error de parámetros faltantes validado correctamente');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url_local_pedidos}}/orders",
+          "host": ["{{url_local_pedidos}}"],
+          "path": ["orders"]
+        }
+      }
+    },
+    {
+      "name": "Obtener Pedidos - Client ID Inválido",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const invalidIds = ['0', '-1', 'abc', 'null', 'undefined'];",
+              "const invalidId = invalidIds[Math.floor(Math.random() * invalidIds.length)];",
+              "pm.environment.set('client_id_invalido', invalidId);",
+              "console.log('Client ID inválido generado:', invalidId);"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test('Response is JSON', function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "pm.test('Response has error structure', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('success');",
+              "    pm.expect(response).to.have.property('error');",
+              "    pm.expect(response.success).to.be.false;",
+              "});",
+              "console.log('Error de client ID inválido validado correctamente');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url_local_pedidos}}/orders?client_id={{client_id_invalido}}",
+          "host": ["{{url_local_pedidos}}"],
+          "path": ["orders"],
+          "query": [
+            {
+              "key": "client_id",
+              "value": "{{client_id_invalido}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Obtener Pedidos - Vendor ID Inválido",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const invalidIds = ['0', '-1', 'xyz', 'null', 'undefined'];",
+              "const invalidId = invalidIds[Math.floor(Math.random() * invalidIds.length)];",
+              "pm.environment.set('vendor_id_invalido', invalidId);",
+              "console.log('Vendor ID inválido generado:', invalidId);"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test('Response is JSON', function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "pm.test('Response has error structure', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('success');",
+              "    pm.expect(response).to.have.property('error');",
+              "    pm.expect(response.success).to.be.false;",
+              "});",
+              "console.log('Error de vendor ID inválido validado correctamente');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url_local_pedidos}}/orders?vendor_id={{vendor_id_invalido}}",
+          "host": ["{{url_local_pedidos}}"],
+          "path": ["orders"],
+          "query": [
+            {
+              "key": "vendor_id",
+              "value": "{{vendor_id_invalido}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Obtener Pedidos - Cliente Sin Pedidos",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const clientIdSinPedidos = Math.floor(Math.random() * 1000) + 10000;",
+              "pm.environment.set('client_id_sin_pedidos', clientIdSinPedidos.toString());",
+              "console.log('Cliente ID sin pedidos generado:', clientIdSinPedidos);"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response is JSON', function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "pm.test('Response has success structure', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('success');",
+              "    pm.expect(response).to.have.property('message');",
+              "    pm.expect(response).to.have.property('data');",
+              "    pm.expect(response.success).to.be.true;",
+              "});",
+              "pm.test('Message indicates no orders', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.message).to.include('entregas programadas');",
+              "});",
+              "pm.test('Data is empty array', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.data).to.be.an('array');",
+              "    pm.expect(response.data.length).to.eql(0);",
+              "});",
+              "console.log('Cliente sin pedidos validado correctamente');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url_local_pedidos}}/orders?client_id={{client_id_sin_pedidos}}",
+          "host": ["{{url_local_pedidos}}"],
+          "path": ["orders"],
+          "query": [
+            {
+              "key": "client_id",
+              "value": "{{client_id_sin_pedidos}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Obtener Pedidos - Vendedor Sin Pedidos",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const vendorIdSinPedidos = Math.floor(Math.random() * 1000) + 10000;",
+              "pm.environment.set('vendor_id_sin_pedidos', vendorIdSinPedidos.toString());",
+              "console.log('Vendedor ID sin pedidos generado:', vendorIdSinPedidos);"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response is JSON', function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "pm.test('Response has success structure', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('success');",
+              "    pm.expect(response).to.have.property('message');",
+              "    pm.expect(response).to.have.property('data');",
+              "    pm.expect(response.success).to.be.true;",
+              "});",
+              "pm.test('Message indicates no orders', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.message).to.include('entregas programadas');",
+              "});",
+              "pm.test('Data is empty array', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.data).to.be.an('array');",
+              "    pm.expect(response.data.length).to.eql(0);",
+              "});",
+              "console.log('Vendedor sin pedidos validado correctamente');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url_local_pedidos}}/orders?vendor_id={{vendor_id_sin_pedidos}}",
+          "host": ["{{url_local_pedidos}}"],
+          "path": ["orders"],
+          "query": [
+            {
+              "key": "vendor_id",
+              "value": "{{vendor_id_sin_pedidos}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Obtener Pedidos - Ambos Parámetros",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const clientId = Math.floor(Math.random() * 100) + 1;",
+              "const vendorId = Math.floor(Math.random() * 50) + 1;",
+              "pm.environment.set('client_id_ambos', clientId.toString());",
+              "pm.environment.set('vendor_id_ambos', vendorId.toString());",
+              "console.log('IDs generados - Cliente:', clientId, 'Vendedor:', vendorId);"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response is JSON', function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "pm.test('Response has success structure', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('success');",
+              "    pm.expect(response).to.have.property('message');",
+              "    pm.expect(response).to.have.property('data');",
+              "    pm.expect(response.success).to.be.true;",
+              "});",
+              "pm.test('Data is an array', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.data).to.be.an('array');",
+              "});",
+              "console.log('Consulta con ambos parámetros validada correctamente');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url_local_pedidos}}/orders?client_id={{client_id_ambos}}&vendor_id={{vendor_id_ambos}}",
+          "host": ["{{url_local_pedidos}}"],
+          "path": ["orders"],
+          "query": [
+            {
+              "key": "client_id",
+              "value": "{{client_id_ambos}}"
+            },
+            {
+              "key": "vendor_id",
+              "value": "{{vendor_id_ambos}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Eliminar Todos los Pedidos",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response is JSON', function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "pm.test('Response has success structure', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('success');",
+              "    pm.expect(response).to.have.property('message');",
+              "    pm.expect(response.success).to.be.true;",
+              "});",
+              "pm.test('Deletion message is correct', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.message).to.include('eliminados exitosamente');",
+              "});",
+              "console.log('Todos los pedidos eliminados correctamente');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{url_local_pedidos}}/orders/delete-all",
+          "host": ["{{url_local_pedidos}}"],
+          "path": ["orders", "delete-all"]
+        }
+      }
+    },
+    {
+      "name": "Verificar Estado Vacío Después de Eliminar",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "console.log('Verificando que no hay pedidos después de eliminar todos');"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response is JSON', function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "pm.test('Response has success structure', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('success');",
+              "    pm.expect(response).to.have.property('message');",
+              "    pm.expect(response).to.have.property('data');",
+              "    pm.expect(response.success).to.be.true;",
+              "});",
+              "pm.test('Message indicates no orders', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.message).to.include('entregas programadas');",
+              "});",
+              "pm.test('Data is empty array', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.data).to.be.an('array');",
+              "    pm.expect(response.data.length).to.eql(0);",
+              "});",
+              "console.log('Estado vacío después de eliminar todos validado correctamente');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url_local_pedidos}}/orders?client_id=1",
+          "host": ["{{url_local_pedidos}}"],
+          "path": ["orders"],
+          "query": [
+            {
+              "key": "client_id",
+              "value": "1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Validación de Estructura de Pedidos",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const clientId = Math.floor(Math.random() * 10) + 1;",
+              "pm.environment.set('client_id_estructura', clientId.toString());",
+              "console.log('Validando estructura con cliente ID:', clientId);"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response is JSON', function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "pm.test('Response has success structure', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('success');",
+              "    pm.expect(response).to.have.property('message');",
+              "    pm.expect(response).to.have.property('data');",
+              "    pm.expect(response.success).to.be.true;",
+              "});",
+              "pm.test('Data is an array', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.data).to.be.an('array');",
+              "});",
+              "pm.test('Orders have required fields', function () {",
+              "    const response = pm.response.json();",
+              "    if (response.data.length > 0) {",
+              "        const order = response.data[0];",
+              "        pm.expect(order).to.have.property('id');",
+              "        pm.expect(order).to.have.property('order_number');",
+              "        pm.expect(order).to.have.property('client_id');",
+              "        pm.expect(order).to.have.property('vendor_id');",
+              "        pm.expect(order).to.have.property('status');",
+              "        pm.expect(order).to.have.property('created_at');",
+              "        pm.expect(order).to.have.property('updated_at');",
+              "        pm.expect(order).to.have.property('items');",
+              "    }",
+              "});",
+              "pm.test('Order number format is correct', function () {",
+              "    const response = pm.response.json();",
+              "    if (response.data.length > 0) {",
+              "        const order = response.data[0];",
+              "        pm.expect(order.order_number).to.match(/^PED-\\d{8}-\\d{5}$/);",
+              "    }",
+              "});",
+              "console.log('Estructura de pedidos validada correctamente');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url_local_pedidos}}/orders?client_id={{client_id_estructura}}",
+          "host": ["{{url_local_pedidos}}"],
+          "path": ["orders"],
+          "query": [
+            {
+              "key": "client_id",
+              "value": "{{client_id_estructura}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Validación de Items de Pedidos",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const clientId = Math.floor(Math.random() * 10) + 1;",
+              "pm.environment.set('client_id_items', clientId.toString());",
+              "console.log('Validando items con cliente ID:', clientId);"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response is JSON', function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "pm.test('Response has success structure', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('success');",
+              "    pm.expect(response).to.have.property('message');",
+              "    pm.expect(response).to.have.property('data');",
+              "    pm.expect(response.success).to.be.true;",
+              "});",
+              "pm.test('Items have required fields', function () {",
+              "    const response = pm.response.json();",
+              "    if (response.data.length > 0) {",
+              "        const order = response.data[0];",
+              "        if (order.items && order.items.length > 0) {",
+              "            const item = order.items[0];",
+              "            pm.expect(item).to.have.property('id');",
+              "            pm.expect(item).to.have.property('product_id');",
+              "            pm.expect(item).to.have.property('quantity');",
+              "            pm.expect(item).to.have.property('order_id');",
+              "            pm.expect(item.product_id).to.be.a('number');",
+              "            pm.expect(item.quantity).to.be.a('number');",
+              "            pm.expect(item.quantity).to.be.at.least(1);",
+              "        }",
+              "    }",
+              "});",
+              "console.log('Estructura de items validada correctamente');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url_local_pedidos}}/orders?client_id={{client_id_items}}",
+          "host": ["{{url_local_pedidos}}"],
+          "path": ["orders"],
+          "query": [
+            {
+              "key": "client_id",
+              "value": "{{client_id_items}}"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "url_local_pedidos",
+      "value": "http://localhost:8085",
+      "type": "string"
+    }
+  ]
+}
