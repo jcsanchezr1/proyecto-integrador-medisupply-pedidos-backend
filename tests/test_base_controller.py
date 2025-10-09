@@ -223,3 +223,4 @@ class TestBaseController:
         assert callable(self.controller.success_response)
         assert callable(self.controller.error_response)
         assert callable(self.controller.created_response)
+
