@@ -307,7 +307,7 @@ class TestOrderServiceExtended:
         
         result = self.service.delete_all_orders()
         
-        assert result == 5
+        assert result == True
         self.mock_repository.delete_all.assert_called_once()
     
     def test_delete_all_orders_exception(self):

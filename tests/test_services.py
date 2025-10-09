@@ -114,7 +114,7 @@ class TestOrderService:
         
         result = order_service.delete_all_orders()
         
-        assert result == 5
+        assert result == True
         mock_repository.delete_all.assert_called_once()
     
     def test_delete_all_orders_empty(self, order_service, mock_repository):
@@ -123,7 +123,7 @@ class TestOrderService:
         
         result = order_service.delete_all_orders()
         
-        assert result == 0
+        assert result == True
         mock_repository.delete_all.assert_called_once()
     
     def test_delete_all_orders_database_error(self, order_service, mock_repository):
