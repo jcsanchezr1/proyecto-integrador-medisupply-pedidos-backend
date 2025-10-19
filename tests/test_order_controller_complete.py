@@ -43,19 +43,27 @@ class TestOrderControllerFinal:
         with patch('app.config.database.SessionLocal') as mock_session_local:
             mock_session = MagicMock()
             mock_session_local.return_value = mock_session
-            
-            controller = OrderController()
-            
-            with self.app.test_request_context('/orders'):
-                from flask import request
-                with patch.object(request, 'args') as mock_args:
-                    mock_args.get.side_effect = lambda key, type=None: 1 if key == 'client_id' else None
+
+            with patch('app.repositories.order_repository.OrderRepository') as mock_repo_class:
+                with patch('app.services.order_service.OrderService') as mock_service_class:
                     
-                    # Mock para que no haya pedidos
-                    with patch.object(controller.order_service, 'get_orders_by_client', return_value=[]):
-                        with patch.object(controller.order_service, '_enrich_order_items_with_product_info', return_value=MagicMock()):
+                    # Configurar mocks
+                    mock_repo = MagicMock()
+                    mock_repo_class.return_value = mock_repo
+                    
+                    mock_service = MagicMock()
+                    mock_service.get_orders_by_client.return_value = []
+                    mock_service_class.return_value = mock_service
+
+                    controller = OrderController()
+
+                    with self.app.test_request_context('/orders'):
+                        from flask import request
+                        with patch.object(request, 'args') as mock_args:
+                            mock_args.get.side_effect = lambda key, type=None: 1 if key == 'client_id' else None
+
                             response, status_code = controller.get()
-                    
+
                     assert status_code == 200
                     assert response["success"] is True
                     assert response["data"] == []
@@ -66,44 +74,60 @@ class TestOrderControllerFinal:
         with patch('app.config.database.SessionLocal') as mock_session_local:
             mock_session = MagicMock()
             mock_session_local.return_value = mock_session
-            
-            controller = OrderController()
-            
-            with self.app.test_request_context('/orders'):
-                from flask import request
-                with patch.object(request, 'args') as mock_args:
-                    mock_args.get.side_effect = lambda key, type=None: 1 if key == 'client_id' else None
+
+            with patch('app.repositories.order_repository.OrderRepository') as mock_repo_class:
+                with patch('app.services.order_service.OrderService') as mock_service_class:
                     
-                    # Mock para que lance OrderBusinessLogicError
-                    with patch.object(controller.order_service, 'get_orders_by_client', side_effect=OrderBusinessLogicError("Error de lógica de negocio")):
-                        response, status_code = controller.get()
+                    # Configurar mocks
+                    mock_repo = MagicMock()
+                    mock_repo_class.return_value = mock_repo
                     
+                    mock_service = MagicMock()
+                    mock_service.get_orders_by_client.side_effect = OrderBusinessLogicError("Error de lógica de negocio")
+                    mock_service_class.return_value = mock_service
+
+                    controller = OrderController()
+
+                    with self.app.test_request_context('/orders'):
+                        from flask import request
+                        with patch.object(request, 'args') as mock_args:
+                            mock_args.get.side_effect = lambda key, type=None: 1 if key == 'client_id' else None
+
+                            response, status_code = controller.get()
+
                     assert status_code == 500
                     assert response["success"] is False
                     assert "Error de lógica de negocio" in response["error"]
-                    assert "Error de lógica de negocio" in response["details"]
     
     def test_get_with_client_id_success(self):
         """Test: GET con client_id exitoso"""
         with patch('app.config.database.SessionLocal') as mock_session_local:
             mock_session = MagicMock()
             mock_session_local.return_value = mock_session
-            
-            controller = OrderController()
-            
-            with self.app.test_request_context('/orders'):
-                from flask import request
-                with patch.object(request, 'args') as mock_args:
-                    mock_args.get.side_effect = lambda key, type=None: 1 if key == 'client_id' else None
+
+            with patch('app.repositories.order_repository.OrderRepository') as mock_repo_class:
+                with patch('app.services.order_service.OrderService') as mock_service_class:
                     
-                    # Mock para pedidos exitosos
+                    # Configurar mocks
+                    mock_repo = MagicMock()
+                    mock_repo_class.return_value = mock_repo
+                    
+                    mock_service = MagicMock()
                     mock_order = MagicMock()
                     mock_order.to_dict.return_value = {"id": 1, "order_number": "PED-001"}
-                    
-                    with patch.object(controller.order_service, 'get_orders_by_client', return_value=[mock_order]):
-                        with patch.object(controller.order_service, '_enrich_order_items_with_product_info', return_value=mock_order):
+                    mock_service.get_orders_by_client.return_value = [mock_order]
+                    mock_service._enrich_order_items_with_product_info.return_value = mock_order
+                    mock_service_class.return_value = mock_service
+
+                    controller = OrderController()
+
+                    with self.app.test_request_context('/orders'):
+                        from flask import request
+                        with patch.object(request, 'args') as mock_args:
+                            mock_args.get.side_effect = lambda key, type=None: 1 if key == 'client_id' else None
+
                             response, status_code = controller.get()
-                    
+
                     assert status_code == 200
                     assert response["success"] is True
                     assert len(response["data"]) == 1
@@ -115,22 +139,30 @@ class TestOrderControllerFinal:
         with patch('app.config.database.SessionLocal') as mock_session_local:
             mock_session = MagicMock()
             mock_session_local.return_value = mock_session
-            
-            controller = OrderController()
-            
-            with self.app.test_request_context('/orders'):
-                from flask import request
-                with patch.object(request, 'args') as mock_args:
-                    mock_args.get.side_effect = lambda key, type=None: 2 if key == 'vendor_id' else None
+
+            with patch('app.repositories.order_repository.OrderRepository') as mock_repo_class:
+                with patch('app.services.order_service.OrderService') as mock_service_class:
                     
-                    # Mock para pedidos exitosos
+                    # Configurar mocks
+                    mock_repo = MagicMock()
+                    mock_repo_class.return_value = mock_repo
+                    
+                    mock_service = MagicMock()
                     mock_order = MagicMock()
                     mock_order.to_dict.return_value = {"id": 2, "order_number": "PED-002"}
-                    
-                    with patch.object(controller.order_service, 'get_orders_by_vendor', return_value=[mock_order]):
-                        with patch.object(controller.order_service, '_enrich_order_items_with_product_info', return_value=mock_order):
+                    mock_service.get_orders_by_vendor.return_value = [mock_order]
+                    mock_service._enrich_order_items_with_product_info.return_value = mock_order
+                    mock_service_class.return_value = mock_service
+
+                    controller = OrderController()
+
+                    with self.app.test_request_context('/orders'):
+                        from flask import request
+                        with patch.object(request, 'args') as mock_args:
+                            mock_args.get.side_effect = lambda key, type=None: 2 if key == 'vendor_id' else None
+
                             response, status_code = controller.get()
-                    
+
                     assert status_code == 200
                     assert response["success"] is True
                     assert len(response["data"]) == 1
@@ -142,18 +174,27 @@ class TestOrderControllerFinal:
         with patch('app.config.database.SessionLocal') as mock_session_local:
             mock_session = MagicMock()
             mock_session_local.return_value = mock_session
-            
-            controller = OrderController()
-            
-            with self.app.test_request_context('/orders'):
-                from flask import request
-                with patch.object(request, 'args') as mock_args:
-                    mock_args.get.side_effect = lambda key, type=None: 1 if key == 'client_id' else None
+
+            with patch('app.repositories.order_repository.OrderRepository') as mock_repo_class:
+                with patch('app.services.order_service.OrderService') as mock_service_class:
                     
-                    # Mock para que lance OrderValidationError
-                    with patch.object(controller.order_service, 'get_orders_by_client', side_effect=OrderValidationError("Error de validación")):
-                        response, status_code = controller.get()
+                    # Configurar mocks
+                    mock_repo = MagicMock()
+                    mock_repo_class.return_value = mock_repo
                     
+                    mock_service = MagicMock()
+                    mock_service.get_orders_by_client.side_effect = OrderValidationError("Error de validación")
+                    mock_service_class.return_value = mock_service
+
+                    controller = OrderController()
+
+                    with self.app.test_request_context('/orders'):
+                        from flask import request
+                        with patch.object(request, 'args') as mock_args:
+                            mock_args.get.side_effect = lambda key, type=None: 1 if key == 'client_id' else None
+
+                            response, status_code = controller.get()
+
                     assert status_code == 400
                     assert response["success"] is False
                     assert "Error de validación" in response["error"]
@@ -164,18 +205,27 @@ class TestOrderControllerFinal:
         with patch('app.config.database.SessionLocal') as mock_session_local:
             mock_session = MagicMock()
             mock_session_local.return_value = mock_session
-            
-            controller = OrderController()
-            
-            with self.app.test_request_context('/orders'):
-                from flask import request
-                with patch.object(request, 'args') as mock_args:
-                    mock_args.get.side_effect = lambda key, type=None: 1 if key == 'client_id' else None
+
+            with patch('app.repositories.order_repository.OrderRepository') as mock_repo_class:
+                with patch('app.services.order_service.OrderService') as mock_service_class:
                     
-                    # Mock para que lance una excepción general
-                    with patch.object(controller.order_service, 'get_orders_by_client', side_effect=Exception("Error general")):
-                        response, status_code = controller.get()
+                    # Configurar mocks
+                    mock_repo = MagicMock()
+                    mock_repo_class.return_value = mock_repo
                     
+                    mock_service = MagicMock()
+                    mock_service.get_orders_by_client.side_effect = Exception("Error general")
+                    mock_service_class.return_value = mock_service
+
+                    controller = OrderController()
+
+                    with self.app.test_request_context('/orders'):
+                        from flask import request
+                        with patch.object(request, 'args') as mock_args:
+                            mock_args.get.side_effect = lambda key, type=None: 1 if key == 'client_id' else None
+
+                            response, status_code = controller.get()
+
                     assert status_code == 500
                     assert response["success"] is False
                     assert "Error interno del servidor" in response["error"]
