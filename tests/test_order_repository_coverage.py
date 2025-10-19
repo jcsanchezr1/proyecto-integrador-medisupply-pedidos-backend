@@ -131,8 +131,8 @@ class TestOrderRepositoryCoverage:
         # Crear order para crear
         order = Order(
             order_number="PED-001",
-            client_id=1,
-            vendor_id=1,
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8",
             status="Recibido",
             scheduled_delivery_date=datetime(2024, 1, 5),
             assigned_truck="TRUCK001"
@@ -164,8 +164,8 @@ class TestOrderRepositoryCoverage:
         """Test: create con SQLAlchemyError (líneas 53-68)"""
         order = Order(
             order_number="PED-001",
-            client_id=1,
-            vendor_id=1,
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8",
             status="Recibido"
         )
         
@@ -225,8 +225,8 @@ class TestOrderRepositoryCoverage:
         order = Order(
             id=1,
             order_number="PED-001-UPDATED",
-            client_id=1,
-            vendor_id=1,
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8",
             status="En Proceso",
             scheduled_delivery_date=datetime(2024, 1, 6),
             assigned_truck="TRUCK002"
@@ -260,8 +260,8 @@ class TestOrderRepositoryCoverage:
         order = Order(
             id=1,
             order_number="PED-001",
-            client_id=1,
-            vendor_id=1,
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8",
             status="Recibido"
         )
         
@@ -276,8 +276,8 @@ class TestOrderRepositoryCoverage:
         order = Order(
             id=1,
             order_number="PED-001",
-            client_id=1,
-            vendor_id=1,
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8",
             status="Recibido"
         )
         

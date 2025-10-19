@@ -2,6 +2,7 @@
 Tests básicos para modelos - Enfoque simple
 """
 import pytest
+import uuid
 from datetime import datetime, timedelta
 from app.models.order import Order
 from app.models.order_item import OrderItem
@@ -14,25 +15,31 @@ class TestOrderModel:
     
     def test_order_creation_basic(self):
         """Test: Crear pedido básico"""
+        client_uuid = str(uuid.uuid4())
+        vendor_uuid = str(uuid.uuid4())
+        
         order = Order(
             order_number="PED-20241201-00001",
-            client_id=123,
-            vendor_id=456
+            client_id=client_uuid,
+            vendor_id=vendor_uuid
         )
         
         assert order.order_number == "PED-20241201-00001"
-        assert order.client_id == 123
-        assert order.vendor_id == 456
+        assert order.client_id == client_uuid
+        assert order.vendor_id == vendor_uuid
         assert order.status == "Recibido"  # Valor por defecto
         assert order.created_at is not None
         assert order.updated_at is not None
     
     def test_order_creation_with_all_params(self):
         """Test: Crear pedido con todos los parámetros"""
+        client_uuid = str(uuid.uuid4())
+        vendor_uuid = str(uuid.uuid4())
+        
         order = Order(
             order_number="PED-20241201-00002",
-            client_id=789,
-            vendor_id=101,
+            client_id=client_uuid,
+            vendor_id=vendor_uuid,
             status="En Preparación",
             scheduled_delivery_date=datetime.utcnow() + timedelta(days=1),
             assigned_truck="TRUCK-001",
@@ -43,8 +50,8 @@ class TestOrderModel:
         
         assert order.id == 1
         assert order.order_number == "PED-20241201-00002"
-        assert order.client_id == 789
-        assert order.vendor_id == 101
+        assert order.client_id == client_uuid
+        assert order.vendor_id == vendor_uuid
         assert order.status == "En Preparación"
         assert order.assigned_truck == "TRUCK-001"
         assert order.created_at is not None
@@ -52,10 +59,13 @@ class TestOrderModel:
     
     def test_order_to_dict(self):
         """Test: Conversión a diccionario"""
+        client_uuid = str(uuid.uuid4())
+        vendor_uuid = str(uuid.uuid4())
+        
         order = Order(
             order_number="PED-20241201-00003",
-            client_id=111,
-            vendor_id=222,
+            client_id=client_uuid,
+            vendor_id=vendor_uuid,
             status="En Tránsito"
         )
         
@@ -63,8 +73,8 @@ class TestOrderModel:
         
         assert isinstance(order_dict, dict)
         assert order_dict['order_number'] == "PED-20241201-00003"
-        assert order_dict['client_id'] == 111
-        assert order_dict['vendor_id'] == 222
+        assert order_dict['client_id'] == client_uuid
+        assert order_dict['vendor_id'] == vendor_uuid
         assert order_dict['status'] == "En Tránsito"
         assert 'created_at' in order_dict
         assert 'updated_at' in order_dict
@@ -73,8 +83,8 @@ class TestOrderModel:
         """Test: Order tiene métodos necesarios"""
         order = Order(
             order_number="PED-20241201-00001",
-            client_id=123,
-            vendor_id=456
+            client_id="123",
+            vendor_id="456"
         )
         
         assert hasattr(order, 'to_dict')

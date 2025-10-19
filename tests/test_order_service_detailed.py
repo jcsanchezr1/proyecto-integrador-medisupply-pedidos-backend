@@ -55,8 +55,8 @@ class TestOrderServiceExtended:
         # Crear un pedido con un item
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         item = OrderItem(
@@ -89,8 +89,8 @@ class TestOrderServiceExtended:
         # Crear un pedido con un item
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         item = OrderItem(
@@ -116,8 +116,8 @@ class TestOrderServiceExtended:
         # Crear un pedido con un item
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         item = OrderItem(
@@ -143,8 +143,8 @@ class TestOrderServiceExtended:
         # Crear un pedido con un item
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         item = OrderItem(
@@ -181,8 +181,8 @@ class TestOrderServiceExtended:
         # Crear un pedido con un item
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         item = OrderItem(
@@ -211,8 +211,8 @@ class TestOrderServiceExtended:
         # Crear un pedido sin items
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         order.items = []
         
@@ -227,8 +227,8 @@ class TestOrderServiceExtended:
         # Crear un pedido con un item
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         item = OrderItem(
@@ -322,8 +322,8 @@ class TestOrderServiceExtended:
         # Crear un pedido con un item
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         item = OrderItem(
@@ -347,12 +347,12 @@ class TestOrderServiceExtended:
     
     def test_get_orders_by_client_zero_id(self):
         """Test: get_orders_by_client con ID cero (línea 23)"""
-        with pytest.raises(OrderValidationError, match="El ID del cliente es obligatorio y debe ser mayor a 0"):
+        with pytest.raises(OrderValidationError, match="El ID del cliente es obligatorio"):
             self.service.get_orders_by_client(0)
     
     def test_get_orders_by_vendor_zero_id(self):
         """Test: get_orders_by_vendor con ID cero (línea 37)"""
-        with pytest.raises(OrderValidationError, match="El ID del vendedor es obligatorio y debe ser mayor a 0"):
+        with pytest.raises(OrderValidationError, match="El ID del vendedor es obligatorio"):
             self.service.get_orders_by_vendor(0)
     
     def test_enrich_order_items_general_exception_specific(self):
@@ -360,8 +360,8 @@ class TestOrderServiceExtended:
         # Crear un pedido con un item
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         item = OrderItem(
@@ -387,8 +387,8 @@ class TestOrderServiceExtended:
         # Crear un pedido con un item
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         item = OrderItem(
@@ -418,8 +418,8 @@ class TestOrderServiceExtended:
         # Crear un pedido con un item
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         item = OrderItem(
@@ -452,8 +452,8 @@ class TestOrderServiceExtended:
         # Crear un pedido con un item
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         item = OrderItem(
@@ -482,8 +482,8 @@ class TestOrderServiceExtended:
         # Crear un pedido con un item
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         item = OrderItem(
@@ -512,8 +512,8 @@ class TestOrderServiceExtended:
         # Crear un pedido con un item
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         item = OrderItem(
@@ -542,8 +542,8 @@ class TestOrderServiceExtended:
         # Crear un pedido con un item
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         item = OrderItem(
