@@ -17,7 +17,6 @@ env:
   # Variables de entorno de la aplicación (usando variables de GitHub Actions)
   DATABASE_URL: ${{ vars.DATABASE_URL }}
   SIGNING_SERVICE_ACCOUNT_EMAIL: ${{ vars.SIGNING_SERVICE_ACCOUNT_EMAIL }}
-  PROVIDERS_SERVICE_URL: ${{ vars.PROVIDERS_SERVICE_URL }}
   INVENTORY_SERVICE_URL: ${{ vars.INVENTORY_SERVICE_URL }}
 
   # Configuración de la imagen
@@ -47,7 +46,7 @@ jobs:
           
       - name: Run tests
         run: |
-          coverage run -m unittest discover -s tests
+          coverage run -m pytest
           coverage report --fail-under=80
           
       - name: Authenticate to Google Cloud
@@ -80,7 +79,7 @@ jobs:
             --region ${{ env.GCP_REGION }} \
             --platform managed \
             --service-account ${{ env.SIGNING_SERVICE_ACCOUNT_EMAIL }} \
-            --set-env-vars HOST="0.0.0.0",DEBUG="false",DATABASE_URL="${{ env.DATABASE_URL }}",GCP_PROJECT_ID="${{ env.GCP_PROJECT_ID }}",SIGNING_SERVICE_ACCOUNT_EMAIL="${{ env.SIGNING_SERVICE_ACCOUNT_EMAIL }}",PROVIDERS_SERVICE_URL="${{ env.PROVIDERS_SERVICE_URL }}",INVENTORY_SERVICE_URL="${{ env.INVENTORY_SERVICE_URL }}" \
+            --set-env-vars HOST="0.0.0.0",DEBUG="false",DATABASE_URL="${{ env.DATABASE_URL }}",GCP_PROJECT_ID="${{ env.GCP_PROJECT_ID }}",SIGNING_SERVICE_ACCOUNT_EMAIL="${{ env.SIGNING_SERVICE_ACCOUNT_EMAIL }}",INVENTORY_SERVICE_URL="${{ env.INVENTORY_SERVICE_URL }}" \
             --memory 2Gi \
             --cpu 2 \
             --min-instances 1 \
