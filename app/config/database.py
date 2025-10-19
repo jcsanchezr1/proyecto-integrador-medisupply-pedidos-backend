@@ -59,7 +59,7 @@ def auto_close_session(func):
             # Cerrar la sesión automáticamente
             try:
                 session.close()
-                print(f"🔒 Sesión cerrada en finally del decorador")
+                print(f"Sesión cerrada en finally del decorador")
             except Exception as e:
                 print(f"Error cerrando sesión en finally: {e}")
     
