@@ -24,24 +24,24 @@ class OrderRepository(BaseRepository):
         except SQLAlchemyError as e:
             raise Exception(f"Error al obtener pedidos: {str(e)}")
     
-    def get_orders_with_items_by_client(self, client_id: int) -> List[Order]:
+    def get_orders_with_items_by_client(self, client_id: str) -> List[Order]:
         """Obtiene pedidos con items por cliente"""
         try:
             # Validar entrada
-            if not client_id or client_id <= 0:
-                raise ValueError("El ID del cliente debe ser mayor a 0")
+            if not client_id:
+                raise ValueError("El ID del cliente debe ser válido")
             
             db_orders = self.session.query(OrderDB).filter(OrderDB.client_id == client_id).all()
             return [self._db_to_model_with_items(db_order) for db_order in db_orders]
         except SQLAlchemyError as e:
             raise Exception(f"Error al obtener pedidos del cliente: {str(e)}")
     
-    def get_orders_with_items_by_vendor(self, vendor_id: int) -> List[Order]:
+    def get_orders_with_items_by_vendor(self, vendor_id: str) -> List[Order]:
         """Obtiene pedidos con items por vendedor"""
         try:
             # Validar entrada
-            if not vendor_id or vendor_id <= 0:
-                raise ValueError("El ID del vendedor debe ser mayor a 0")
+            if not vendor_id:
+                raise ValueError("El ID del vendedor debe ser válido")
             
             db_orders = self.session.query(OrderDB).filter(OrderDB.vendor_id == vendor_id).all()
             return [self._db_to_model_with_items(db_order) for db_order in db_orders]

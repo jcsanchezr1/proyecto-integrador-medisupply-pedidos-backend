@@ -3,6 +3,7 @@ Modelo de Pedido
 """
 from datetime import datetime
 from typing import Optional, List
+import uuid
 from .base_model import BaseModel
 from .db_models import OrderStatus
 
@@ -13,8 +14,8 @@ class Order(BaseModel):
     def __init__(
         self,
         order_number: str,
-        client_id: int,
-        vendor_id: int,
+        client_id: str,
+        vendor_id: str,
         status: str = "Recibido",
         scheduled_delivery_date: Optional[datetime] = None,
         assigned_truck: Optional[str] = None,
@@ -64,10 +65,21 @@ class Order(BaseModel):
     
     def _validate_client_and_vendor(self) -> None:
         """Valida que tenga cliente y vendedor"""
-        if not self.client_id or self.client_id <= 0:
+        if not self.client_id:
             raise ValueError("El pedido debe tener un cliente válido")
-        if not self.vendor_id or self.vendor_id <= 0:
+        if not self.vendor_id:
             raise ValueError("El pedido debe tener un vendedor válido")
+        
+        # Validar que sean UUIDs válidos
+        try:
+            uuid.UUID(self.client_id)
+        except ValueError:
+            raise ValueError("El client_id debe ser un UUID válido")
+        
+        try:
+            uuid.UUID(self.vendor_id)
+        except ValueError:
+            raise ValueError("El vendor_id debe ser un UUID válido")
     
     def _validate_status(self) -> None:
         """Valida el estado del pedido"""

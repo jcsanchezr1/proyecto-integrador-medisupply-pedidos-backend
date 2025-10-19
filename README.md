@@ -62,11 +62,11 @@ proyecto-integrador-medisupply-pedidos-backend/
   - **Respuesta**: `"pong"`
 
 ### Gestión de Pedidos
-- `GET /orders?client_id={id}` - Obtiene pedidos por ID de cliente
-- `GET /orders?vendor_id={id}` - Obtiene pedidos por ID de vendedor
+- `GET /orders?client_id={uuid}` - Obtiene pedidos por ID de cliente
+- `GET /orders?vendor_id={uuid}` - Obtiene pedidos por ID de vendedor
   - **Parámetros**: 
-    - `client_id` (int, opcional): ID del cliente
-    - `vendor_id` (int, opcional): ID del vendedor
+    - `client_id` (string, opcional): UUID del cliente
+    - `vendor_id` (string, opcional): UUID del vendedor
   - **Validación**: Debe proporcionar `client_id` O `vendor_id` (no ambos)
   - **Respuesta exitosa**:
     ```json
@@ -77,8 +77,8 @@ proyecto-integrador-medisupply-pedidos-backend/
         {
           "id": 1,
           "order_number": "PED-20241207-12345",
-          "client_id": 1,
-          "vendor_id": null,
+          "client_id": "550e8400-e29b-41d4-a716-446655440000",
+          "vendor_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
           "status": "Recibido",
           "scheduled_delivery_date": "2024-12-08T10:00:00",
           "assigned_truck": "TRK-001",

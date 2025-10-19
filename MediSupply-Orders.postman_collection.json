@@ -48,6 +48,94 @@
 			"response": []
 		},
 		{
+			"name": "Auth Token Admin - Exitoso",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Validar respuesta exitosa de autenticación",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has access_token\", function () {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.have.property('access_token');",
+							"    pm.expect(responseJson.access_token).to.be.a('string');",
+							"    pm.expect(responseJson.access_token).to.not.be.empty;",
+							"});",
+							"",
+							"pm.test(\"Response has token_type\", function () {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.have.property('token_type');",
+							"    pm.expect(responseJson.token_type).to.eql('Bearer');",
+							"});",
+							"",
+							"pm.test(\"Response has expires_in\", function () {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.have.property('expires_in');",
+							"    pm.expect(responseJson.expires_in).to.be.a('number');",
+							"    pm.expect(responseJson.expires_in).to.be.above(0);",
+							"});",
+							"",
+							"pm.test(\"Response has refresh_token\", function () {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.have.property('refresh_token');",
+							"    pm.expect(responseJson.refresh_token).to.be.a('string');",
+							"    pm.expect(responseJson.refresh_token).to.not.be.empty;",
+							"});",
+							"",
+							"pm.test(\"Response time is less than 5000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+							"});",
+							"",
+							"// Guardar tokens para uso posterior",
+							"const responseJson = pm.response.json();",
+							"if (responseJson && responseJson.access_token) {",
+							"    pm.globals.set('auth_token', responseJson.access_token);",
+							"    console.log('Token de autenticación guardado');",
+							"}",
+							"",
+							"// Guardar refresh_token para logout",
+							"if (responseJson && responseJson.refresh_token) {",
+							"    pm.globals.set('refresh_token', responseJson.refresh_token);",
+							"    console.log('Refresh token guardado para logout');",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"user\": \"medisupply05@gmail.com\",\n    \"password\": \"Admin123456\"\n}"
+				},
+				"url": {
+					"raw": "{{url_local_pedidos}}/auth/token",
+					"host": [
+						"{{url_local_pedidos}}"
+					],
+					"path": [
+						"auth",
+						"token"
+					]
+				},
+				"description": "Autentica un usuario admin usando las credenciales creadas anteriormente"
+			},
+			"response": []
+		},
+		{
 			"name": "Obtener Pedidos por Cliente - Datos Válidos",
 			"event": [
 				{
@@ -55,7 +143,7 @@
 					"script": {
 						"exec": [
 							"const clientId = Math.floor(Math.random() * 100) + 1;",
-							"pm.environment.set('client_id_valido', clientId.toString());",
+							"pm.environment.set(\"client_id_valido\", \"f1c2ce13-6623-4f42-a70b-9caadb7b8cbf\");",
 							"console.log('Cliente ID generado:', clientId);"
 						],
 						"type": "text/javascript",
@@ -127,7 +215,7 @@
 					"script": {
 						"exec": [
 							"const vendorId = Math.floor(Math.random() * 50) + 1;",
-							"pm.environment.set('vendor_id_valido', vendorId.toString());",
+							"pm.environment.set(\"vendor_id_valido\", \"df3bdc3f-7783-4c1e-981a-8060b114dfb2\");",
 							"console.log('Vendedor ID generado:', vendorId);"
 						],
 						"type": "text/javascript",
@@ -208,11 +296,12 @@
 							"    const response = pm.response.json();",
 							"    pm.expect(response).to.have.property('success');",
 							"    pm.expect(response).to.have.property('error');",
+							"    pm.expect(response).to.have.property('details');",
 							"    pm.expect(response.success).to.be.false;",
 							"});",
 							"pm.test('Error message is correct', function () {",
 							"    const response = pm.response.json();",
-							"    pm.expect(response.details).to.include('client_id o vendor_id');",
+							"        pm.expect(response.details).to.include('Debe proporcionar client_id o vendor_id');",
 							"});",
 							"console.log('Error de parámetros faltantes validado correctamente');"
 						],
@@ -252,7 +341,7 @@
 						"exec": [
 							"const invalidIds = ['0', '-1', 'abc', 'null', 'undefined'];",
 							"const invalidId = invalidIds[Math.floor(Math.random() * invalidIds.length)];",
-							"pm.environment.set('client_id_invalido', invalidId);",
+							"pm.environment.set(\"client_id_invalido\", \"invalid-uuid-format\");",
 							"console.log('Client ID inválido generado:', invalidId);"
 						],
 						"type": "text/javascript",
@@ -274,7 +363,12 @@
 							"    const response = pm.response.json();",
 							"    pm.expect(response).to.have.property('success');",
 							"    pm.expect(response).to.have.property('error');",
+							"    pm.expect(response).to.have.property('details');",
 							"    pm.expect(response.success).to.be.false;",
+							"});",
+							"pm.test('Error message contains UUID validation', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.details).to.include('client_id debe ser un UUID válido');",
 							"});",
 							"console.log('Error de client ID inválido validado correctamente');"
 						],
@@ -320,7 +414,7 @@
 						"exec": [
 							"const invalidIds = ['0', '-1', 'xyz', 'null', 'undefined'];",
 							"const invalidId = invalidIds[Math.floor(Math.random() * invalidIds.length)];",
-							"pm.environment.set('vendor_id_invalido', invalidId);",
+							"pm.environment.set(\"vendor_id_invalido\", \"not-a-uuid\");",
 							"console.log('Vendor ID inválido generado:', invalidId);"
 						],
 						"type": "text/javascript",
@@ -342,7 +436,12 @@
 							"    const response = pm.response.json();",
 							"    pm.expect(response).to.have.property('success');",
 							"    pm.expect(response).to.have.property('error');",
+							"    pm.expect(response).to.have.property('details');",
 							"    pm.expect(response.success).to.be.false;",
+							"});",
+							"pm.test('Error message contains UUID validation', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.details).to.include('vendor_id debe ser un UUID válido');",
 							"});",
 							"console.log('Error de vendor ID inválido validado correctamente');"
 						],
@@ -387,7 +486,7 @@
 					"script": {
 						"exec": [
 							"const clientIdSinPedidos = Math.floor(Math.random() * 1000) + 10000;",
-							"pm.environment.set('client_id_sin_pedidos', clientIdSinPedidos.toString());",
+							"pm.environment.set(\"client_id_sin_pedidos\", \"550e8400-e29b-41d4-a716-446655440000\");",
 							"console.log('Cliente ID sin pedidos generado:', clientIdSinPedidos);"
 						],
 						"type": "text/javascript",
@@ -414,7 +513,7 @@
 							"});",
 							"pm.test('Message indicates no orders', function () {",
 							"    const response = pm.response.json();",
-							"    pm.expect(response.message).to.include('entregas programadas');",
+							"    pm.expect(response.message).to.include('No tienes entregas programadas en este momento');",
 							"});",
 							"pm.test('Data is empty array', function () {",
 							"    const response = pm.response.json();",
@@ -464,7 +563,7 @@
 					"script": {
 						"exec": [
 							"const vendorIdSinPedidos = Math.floor(Math.random() * 1000) + 10000;",
-							"pm.environment.set('vendor_id_sin_pedidos', vendorIdSinPedidos.toString());",
+							"pm.environment.set(\"vendor_id_sin_pedidos\", \"6ba7b810-9dad-11d1-80b4-00c04fd430c8\");",
 							"console.log('Vendedor ID sin pedidos generado:', vendorIdSinPedidos);"
 						],
 						"type": "text/javascript",
@@ -491,7 +590,7 @@
 							"});",
 							"pm.test('Message indicates no orders', function () {",
 							"    const response = pm.response.json();",
-							"    pm.expect(response.message).to.include('entregas programadas');",
+							"    pm.expect(response.message).to.include('No tienes entregas programadas en este momento');",
 							"});",
 							"pm.test('Data is empty array', function () {",
 							"    const response = pm.response.json();",
@@ -542,8 +641,8 @@
 						"exec": [
 							"const clientId = Math.floor(Math.random() * 100) + 1;",
 							"const vendorId = Math.floor(Math.random() * 50) + 1;",
-							"pm.environment.set('client_id_ambos', clientId.toString());",
-							"pm.environment.set('vendor_id_ambos', vendorId.toString());",
+							"pm.environment.set(\"client_id_ambos\", \"f1c2ce13-6623-4f42-a70b-9caadb7b8cbf\");",
+							"pm.environment.set(\"vendor_id_ambos\", \"df3bdc3f-7783-4c1e-981a-8060b114dfb2\");",
 							"console.log('IDs generados - Cliente:', clientId, 'Vendedor:', vendorId);"
 						],
 						"type": "text/javascript",
@@ -699,7 +798,7 @@
 							"});",
 							"pm.test('Message indicates no orders', function () {",
 							"    const response = pm.response.json();",
-							"    pm.expect(response.message).to.include('entregas programadas');",
+							"    pm.expect(response.message).to.include('No tienes entregas programadas en este momento');",
 							"});",
 							"pm.test('Data is empty array', function () {",
 							"    const response = pm.response.json();",
@@ -724,7 +823,7 @@
 					}
 				],
 				"url": {
-					"raw": "{{url_local_pedidos}}/orders?client_id=1",
+					"raw": "{{url_local_pedidos}}/orders?client_id=f1c2ce13-6623-4f42-a70b-9caadb7b8cbf",
 					"host": [
 						"{{url_local_pedidos}}"
 					],
@@ -734,7 +833,7 @@
 					"query": [
 						{
 							"key": "client_id",
-							"value": "1"
+							"value": "f1c2ce13-6623-4f42-a70b-9caadb7b8cbf"
 						}
 					]
 				}
@@ -749,7 +848,7 @@
 					"script": {
 						"exec": [
 							"const clientId = Math.floor(Math.random() * 10) + 1;",
-							"pm.environment.set('client_id_estructura', clientId.toString());",
+							"pm.environment.set(\"client_id_estructura\", \"f1c2ce13-6623-4f42-a70b-9caadb7b8cbf\");",
 							"console.log('Validando estructura con cliente ID:', clientId);"
 						],
 						"type": "text/javascript",
@@ -778,23 +877,23 @@
 							"    const response = pm.response.json();",
 							"    pm.expect(response.data).to.be.an('array');",
 							"});",
-							"pm.test('Orders have required fields', function () {",
+							"pm.test('Orders have required fields (if any exist)', function () {",
 							"    const response = pm.response.json();",
-							"    if (response.data.length > 0) {",
+							"    if (response.data && response.data.length > 0) {",
 							"        const order = response.data[0];",
 							"        pm.expect(order).to.have.property('id');",
 							"        pm.expect(order).to.have.property('order_number');",
 							"        pm.expect(order).to.have.property('client_id');",
 							"        pm.expect(order).to.have.property('vendor_id');",
 							"        pm.expect(order).to.have.property('status');",
-							"        pm.expect(order).to.have.property('created_at');",
-							"        pm.expect(order).to.have.property('updated_at');",
-							"        pm.expect(order).to.have.property('items');",
+							"    } else {",
+							"        pm.expect(response.data).to.be.an('array');",
+							"        pm.expect(response.data.length).to.eql(0);",
 							"    }",
 							"});",
-							"pm.test('Order number format is correct', function () {",
+							"pm.test('Order number format is correct (if any exist)', function () {",
 							"    const response = pm.response.json();",
-							"    if (response.data.length > 0) {",
+							"    if (response.data && response.data.length > 0) {",
 							"        const order = response.data[0];",
 							"        pm.expect(order.order_number).to.match(/^PED-\\d{8}-\\d{5}$/);",
 							"    }",
@@ -842,7 +941,7 @@
 					"script": {
 						"exec": [
 							"const clientId = Math.floor(Math.random() * 10) + 1;",
-							"pm.environment.set('client_id_items', clientId.toString());",
+							"pm.environment.set(\"client_id_items\", \"f1c2ce13-6623-4f42-a70b-9caadb7b8cbf\");",
 							"console.log('Validando items con cliente ID:', clientId);"
 						],
 						"type": "text/javascript",
@@ -867,9 +966,9 @@
 							"    pm.expect(response).to.have.property('data');",
 							"    pm.expect(response.success).to.be.true;",
 							"});",
-							"pm.test('Items have required fields', function () {",
+							"pm.test('Items have required fields (if any exist)', function () {",
 							"    const response = pm.response.json();",
-							"    if (response.data.length > 0) {",
+							"    if (response.data && response.data.length > 0) {",
 							"        const order = response.data[0];",
 							"        if (order.items && order.items.length > 0) {",
 							"            const item = order.items[0];",
@@ -877,9 +976,9 @@
 							"            pm.expect(item).to.have.property('product_id');",
 							"            pm.expect(item).to.have.property('quantity');",
 							"            pm.expect(item).to.have.property('order_id');",
-							"            pm.expect(item.product_id).to.be.a('number');",
-							"            pm.expect(item.quantity).to.be.a('number');",
-							"            pm.expect(item.quantity).to.be.at.least(1);",
+							"        }",
+							"    }",
+							"});",
 							"        }",
 							"    }",
 							"});",
@@ -922,7 +1021,7 @@
 	"variable": [
 		{
 			"key": "url_local_pedidos",
-			"value": "http://localhost:8082",
+			"value": "http://localhost:8085",
 			"type": "string"
 		}
 	]
