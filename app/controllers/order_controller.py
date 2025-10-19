@@ -1,6 +1,7 @@
 """
 Controlador para manejo de pedidos
 """
+import uuid
 from flask_restful import Resource, reqparse
 from typing import List
 from ..services.order_service import OrderService
@@ -25,8 +26,8 @@ class OrderController(BaseController):
         from flask import request
         
         # Obtener parámetros de query
-        client_id = request.args.get('client_id', type=int)
-        vendor_id = request.args.get('vendor_id', type=int)
+        client_id = request.args.get('client_id', type=str)
+        vendor_id = request.args.get('vendor_id', type=str)
         
         try:
             # Validar que se proporcione al menos uno de los IDs
@@ -36,6 +37,27 @@ class OrderController(BaseController):
                     "Debe proporcionar client_id o vendor_id",
                     400
                 )
+            
+            # Validar formato UUID si se proporcionan los IDs
+            if client_id:
+                try:
+                    uuid.UUID(client_id)
+                except ValueError:
+                    return self.error_response(
+                        "Error de validación",
+                        "El client_id debe ser un UUID válido",
+                        400
+                    )
+            
+            if vendor_id:
+                try:
+                    uuid.UUID(vendor_id)
+                except ValueError:
+                    return self.error_response(
+                        "Error de validación",
+                        "El vendor_id debe ser un UUID válido",
+                        400
+                    )
             
             # Obtener pedidos según el tipo de usuario
             if client_id:

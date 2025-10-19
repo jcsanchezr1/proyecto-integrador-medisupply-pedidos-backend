@@ -25,8 +25,8 @@ class OrderDB(Base):
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     order_number = Column(String(20), unique=True, nullable=False)
-    client_id = Column(Integer, nullable=False)
-    vendor_id = Column(Integer, nullable=False)
+    client_id = Column(String(36), nullable=False)
+    vendor_id = Column(String(36), nullable=False)
     status = Column(Enum(OrderStatus), nullable=False, default=OrderStatus.RECIBIDO)
     scheduled_delivery_date = Column(DateTime, nullable=True)
     assigned_truck = Column(String(50), nullable=True)
