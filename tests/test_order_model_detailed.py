@@ -14,8 +14,8 @@ class TestOrderModelExtended:
         """Test: Validación de número de pedido vacío"""
         order = Order(
             order_number="",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         with pytest.raises(ValueError, match="El número de pedido es obligatorio"):
@@ -25,8 +25,8 @@ class TestOrderModelExtended:
         """Test: Validación de número de pedido None"""
         order = Order(
             order_number=None,
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         with pytest.raises(ValueError, match="El número de pedido es obligatorio"):
@@ -36,8 +36,8 @@ class TestOrderModelExtended:
         """Test: Validación de número de pedido con prefijo incorrecto"""
         order = Order(
             order_number="ORD-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         with pytest.raises(ValueError, match="El número de pedido debe comenzar con 'PED-'"):
@@ -47,8 +47,8 @@ class TestOrderModelExtended:
         """Test: Validación de número de pedido con formato incorrecto"""
         order = Order(
             order_number="PED-20240101",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         with pytest.raises(ValueError, match="El número de pedido debe tener el formato PED-YYYYMMDD-XXXXX"):
@@ -58,8 +58,8 @@ class TestOrderModelExtended:
         """Test: Validación de número de pedido con fecha inválida"""
         order = Order(
             order_number="PED-20240230-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         with pytest.raises(ValueError, match="La fecha en el número de pedido debe ser válida"):
@@ -69,8 +69,8 @@ class TestOrderModelExtended:
         """Test: Validación de número de pedido con secuencia inválida"""
         order = Order(
             order_number="PED-20240101-ABC",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         with pytest.raises(ValueError, match="La secuencia del pedido debe ser de 5 dígitos"):
@@ -80,8 +80,8 @@ class TestOrderModelExtended:
         """Test: Validación de número de pedido con secuencia corta"""
         order = Order(
             order_number="PED-20240101-123",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         with pytest.raises(ValueError, match="La secuencia del pedido debe ser de 5 dígitos"):
@@ -91,8 +91,8 @@ class TestOrderModelExtended:
         """Test: Validación de client_id cero"""
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=0,
-            vendor_id=1
+            client_id="",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         with pytest.raises(ValueError, match="El pedido debe tener un cliente válido"):
@@ -102,19 +102,19 @@ class TestOrderModelExtended:
         """Test: Validación de client_id negativo"""
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=-1,
-            vendor_id=1
+            client_id="invalid-uuid-format",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
-        with pytest.raises(ValueError, match="El pedido debe tener un cliente válido"):
+        with pytest.raises(ValueError, match="El client_id debe ser un UUID válido"):
             order.validate()
     
     def test_validate_vendor_id_zero(self):
         """Test: Validación de vendor_id cero"""
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=0
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id=""
         )
         
         with pytest.raises(ValueError, match="El pedido debe tener un vendedor válido"):
@@ -124,19 +124,19 @@ class TestOrderModelExtended:
         """Test: Validación de vendor_id negativo"""
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=-1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="invalid-uuid-format"
         )
         
-        with pytest.raises(ValueError, match="El pedido debe tener un vendedor válido"):
+        with pytest.raises(ValueError, match="El vendor_id debe ser un UUID válido"):
             order.validate()
     
     def test_validate_status_invalid(self):
         """Test: Validación de estado inválido"""
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1,
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8",
             status="INVALID_STATUS"
         )
         
@@ -148,8 +148,8 @@ class TestOrderModelExtended:
         delivery_date = datetime(2024, 1, 5)
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1,
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8",
             scheduled_delivery_date=delivery_date
         )
         
@@ -161,8 +161,8 @@ class TestOrderModelExtended:
         """Test: to_dict sin scheduled_delivery_date"""
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         result = order.to_dict()
@@ -173,8 +173,8 @@ class TestOrderModelExtended:
         """Test: to_dict con assigned_truck"""
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1,
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8",
             assigned_truck="TRUCK001"
         )
         
@@ -186,8 +186,8 @@ class TestOrderModelExtended:
         """Test: to_dict sin assigned_truck"""
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         result = order.to_dict()
@@ -198,8 +198,8 @@ class TestOrderModelExtended:
         """Test: to_dict con items"""
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         # Mock items
@@ -218,8 +218,8 @@ class TestOrderModelExtended:
         """Test: to_dict sin items"""
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
         
         result = order.to_dict()
@@ -248,8 +248,8 @@ class TestOrderModelExtended:
         """Test: Validación exitosa"""
         order = Order(
             order_number="PED-20240101-00001",
-            client_id=1,
-            vendor_id=1,
+            client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+            vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8",
             status="Recibido"
         )
         
@@ -261,8 +261,8 @@ class TestOrderModelExtended:
         for status in OrderStatus:
             order = Order(
                 order_number="PED-20240101-00001",
-                client_id=1,
-                vendor_id=1,
+                client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+                vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8",
                 status=status.value
             )
             

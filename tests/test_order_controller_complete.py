@@ -60,7 +60,7 @@ class TestOrderControllerFinal:
                     with self.app.test_request_context('/orders'):
                         from flask import request
                         with patch.object(request, 'args') as mock_args:
-                            mock_args.get.side_effect = lambda key, type=None: 1 if key == 'client_id' else None
+                            mock_args.get.side_effect = lambda key, type=None: "f1c2ce13-6623-4f42-a70b-9caadb7b8cbf" if key == 'client_id' else None
 
                             response, status_code = controller.get()
 
@@ -91,7 +91,7 @@ class TestOrderControllerFinal:
                     with self.app.test_request_context('/orders'):
                         from flask import request
                         with patch.object(request, 'args') as mock_args:
-                            mock_args.get.side_effect = lambda key, type=None: 1 if key == 'client_id' else None
+                            mock_args.get.side_effect = lambda key, type=None: "f1c2ce13-6623-4f42-a70b-9caadb7b8cbf" if key == 'client_id' else None
 
                             response, status_code = controller.get()
 
@@ -124,7 +124,7 @@ class TestOrderControllerFinal:
                     with self.app.test_request_context('/orders'):
                         from flask import request
                         with patch.object(request, 'args') as mock_args:
-                            mock_args.get.side_effect = lambda key, type=None: 1 if key == 'client_id' else None
+                            mock_args.get.side_effect = lambda key, type=None: "f1c2ce13-6623-4f42-a70b-9caadb7b8cbf" if key == 'client_id' else None
 
                             response, status_code = controller.get()
 
@@ -159,7 +159,7 @@ class TestOrderControllerFinal:
                     with self.app.test_request_context('/orders'):
                         from flask import request
                         with patch.object(request, 'args') as mock_args:
-                            mock_args.get.side_effect = lambda key, type=None: 2 if key == 'vendor_id' else None
+                            mock_args.get.side_effect = lambda key, type=None: "df3bdc3f-7783-4c1e-981a-8060b114dfb2" if key == 'vendor_id' else None
 
                             response, status_code = controller.get()
 
@@ -191,7 +191,7 @@ class TestOrderControllerFinal:
                     with self.app.test_request_context('/orders'):
                         from flask import request
                         with patch.object(request, 'args') as mock_args:
-                            mock_args.get.side_effect = lambda key, type=None: 1 if key == 'client_id' else None
+                            mock_args.get.side_effect = lambda key, type=None: "f1c2ce13-6623-4f42-a70b-9caadb7b8cbf" if key == 'client_id' else None
 
                             response, status_code = controller.get()
 
@@ -222,7 +222,7 @@ class TestOrderControllerFinal:
                     with self.app.test_request_context('/orders'):
                         from flask import request
                         with patch.object(request, 'args') as mock_args:
-                            mock_args.get.side_effect = lambda key, type=None: 1 if key == 'client_id' else None
+                            mock_args.get.side_effect = lambda key, type=None: "f1c2ce13-6623-4f42-a70b-9caadb7b8cbf" if key == 'client_id' else None
 
                             response, status_code = controller.get()
 

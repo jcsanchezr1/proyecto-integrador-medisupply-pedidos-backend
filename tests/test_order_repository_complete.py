@@ -78,8 +78,8 @@ class TestOrderRepositoryWorkingFinal:
         """Test: Crear pedido exitosamente"""
         order = Order(
             order_number="PED-20241201-00001",
-            client_id=123,
-            vendor_id=456,
+            client_id="550e8400-e29b-41d4-a716-446655440000",
+            vendor_id="6ba7b810-9dad-11d1-80b4-00c04fd430c8",
             status=OrderStatus.RECIBIDO,
             assigned_truck="TRUCK-001",
             scheduled_delivery_date=datetime.utcnow()
@@ -134,8 +134,8 @@ class TestOrderRepositoryWorkingFinal:
         order = Order(
             id=1,
             order_number="PED-20241201-00001",
-            client_id=123,
-            vendor_id=456,
+            client_id="550e8400-e29b-41d4-a716-446655440000",
+            vendor_id="6ba7b810-9dad-11d1-80b4-00c04fd430c8",
             status=OrderStatus.EN_TRANSITO,
             assigned_truck="TRUCK-001",
             scheduled_delivery_date=datetime.utcnow()
@@ -155,8 +155,8 @@ class TestOrderRepositoryWorkingFinal:
         order = Order(
             id=999,
             order_number="PED-20241201-00001",
-            client_id=123,
-            vendor_id=456,
+            client_id="550e8400-e29b-41d4-a716-446655440000",
+            vendor_id="6ba7b810-9dad-11d1-80b4-00c04fd430c8",
             status=OrderStatus.EN_TRANSITO,
             assigned_truck="TRUCK-001",
             scheduled_delivery_date=datetime.utcnow()
@@ -324,8 +324,8 @@ class TestOrderRepositoryWorkingFinal:
         """Test: Error de base de datos en create"""
         order = Order(
             order_number="PED-20241201-00001",
-            client_id=123,
-            vendor_id=456,
+            client_id="550e8400-e29b-41d4-a716-446655440000",
+            vendor_id="6ba7b810-9dad-11d1-80b4-00c04fd430c8",
             status=OrderStatus.RECIBIDO,
             assigned_truck="TRUCK-001",
             scheduled_delivery_date=datetime.utcnow()
@@ -345,8 +345,8 @@ class TestOrderRepositoryWorkingFinal:
         order = Order(
             id=1,
             order_number="PED-20241201-00001",
-            client_id=123,
-            vendor_id=456,
+            client_id="550e8400-e29b-41d4-a716-446655440000",
+            vendor_id="6ba7b810-9dad-11d1-80b4-00c04fd430c8",
             status=OrderStatus.EN_TRANSITO,
             assigned_truck="TRUCK-001",
             scheduled_delivery_date=datetime.utcnow()

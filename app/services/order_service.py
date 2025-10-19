@@ -16,11 +16,11 @@ class OrderService:
     def __init__(self, order_repository: OrderRepository):
         self.order_repository = order_repository
     
-    def get_orders_by_client(self, client_id: int) -> List[Order]:
+    def get_orders_by_client(self, client_id: str) -> List[Order]:
         """Obtiene pedidos por ID de cliente"""
         # Validar entrada al inicio
-        if not client_id or client_id <= 0:
-            raise OrderValidationError("El ID del cliente es obligatorio y debe ser mayor a 0")
+        if not client_id:
+            raise OrderValidationError("El ID del cliente es obligatorio")
         
         try:
             orders = self.order_repository.get_orders_with_items_by_client(client_id)
@@ -30,11 +30,11 @@ class OrderService:
         except Exception as e:
             raise OrderBusinessLogicError(f"Error al obtener pedidos del cliente: {str(e)}")
     
-    def get_orders_by_vendor(self, vendor_id: int) -> List[Order]:
+    def get_orders_by_vendor(self, vendor_id: str) -> List[Order]:
         """Obtiene pedidos por ID de vendedor"""
         # Validar entrada al inicio
-        if not vendor_id or vendor_id <= 0:
-            raise OrderValidationError("El ID del vendedor es obligatorio y debe ser mayor a 0")
+        if not vendor_id:
+            raise OrderValidationError("El ID del vendedor es obligatorio")
         
         try:
             orders = self.order_repository.get_orders_with_items_by_vendor(vendor_id)

@@ -28,8 +28,8 @@ class TestOrderService:
         """Pedido de muestra para testing"""
         order = Order(
             order_number="PED-20241201-00001",
-            client_id=123,
-            vendor_id=456,
+            client_id="550e8400-e29b-41d4-a716-446655440000",
+            vendor_id="6ba7b810-9dad-11d1-80b4-00c04fd430c8",
             status="RECIBIDO",
             scheduled_delivery_date=datetime.utcnow() + timedelta(days=1),
             assigned_truck="TRUCK-001"
@@ -56,7 +56,7 @@ class TestOrderService:
         
         assert len(result) == 1
         assert isinstance(result[0], Order)
-        assert result[0].client_id == 123
+        assert result[0].client_id == "550e8400-e29b-41d4-a716-446655440000"
         mock_repository.get_orders_with_items_by_client.assert_called_once_with(123)
     
     def test_get_orders_by_client_empty(self, order_service, mock_repository):
@@ -86,7 +86,7 @@ class TestOrderService:
         
         assert len(result) == 1
         assert isinstance(result[0], Order)
-        assert result[0].vendor_id == 456
+        assert result[0].vendor_id == "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
         mock_repository.get_orders_with_items_by_vendor.assert_called_once_with(456)
     
     def test_get_orders_by_vendor_empty(self, order_service, mock_repository):
