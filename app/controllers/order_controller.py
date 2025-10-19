@@ -7,6 +7,7 @@ from ..services.order_service import OrderService
 from ..repositories.order_repository import OrderRepository
 from ..exceptions.custom_exceptions import OrderNotFoundError, OrderValidationError, OrderBusinessLogicError
 from .base_controller import BaseController
+from ..config.database import auto_close_session
 
 
 class OrderController(BaseController):
@@ -18,6 +19,7 @@ class OrderController(BaseController):
         self.order_repository = OrderRepository(session)
         self.order_service = OrderService(self.order_repository)
     
+    @auto_close_session
     def get(self):
         """Obtiene pedidos por cliente o vendedor"""
         from flask import request
@@ -77,6 +79,7 @@ class OrderDeleteAllController(BaseController):
         self.order_repository = OrderRepository(session)
         self.order_service = OrderService(self.order_repository)
     
+    @auto_close_session
     def delete(self):
         """Elimina todos los pedidos"""
         try:
