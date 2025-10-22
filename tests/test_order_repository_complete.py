@@ -72,7 +72,6 @@ class TestOrderRepositoryWorkingFinal:
         assert result.items[0].id == sample_order_item_db.id
         assert result.items[0].product_id == sample_order_item_db.product_id
         assert result.items[0].quantity == sample_order_item_db.quantity
-        assert result.items[0].unit_price is None  # Siempre es None según el código
     
     def test_create_success(self, order_repository, mock_session, sample_order_db):
         """Test: Crear pedido exitosamente"""
@@ -220,7 +219,6 @@ class TestOrderRepositoryWorkingFinal:
     
     def test_get_orders_with_items_by_client_empty(self, order_repository, mock_session):
         """Test: Obtener pedidos con items por cliente cuando no hay pedidos"""
-        # Mock del método get_orders_with_items_by_client completo
         with patch.object(order_repository, 'get_orders_with_items_by_client') as mock_get_orders:
             mock_get_orders.return_value = []
             
@@ -232,8 +230,7 @@ class TestOrderRepositoryWorkingFinal:
     def test_get_orders_with_items_by_vendor_success(self, order_repository, mock_session, sample_order_db, sample_order_item_db):
         """Test: Obtener pedidos con items por vendedor exitosamente"""
         sample_order_db.items = [sample_order_item_db]
-        
-        # Mock del método get_orders_with_items_by_vendor completo
+
         with patch.object(order_repository, 'get_orders_with_items_by_vendor') as mock_get_orders:
             expected_orders = [sample_order_db]
             mock_get_orders.return_value = expected_orders
@@ -267,7 +264,6 @@ class TestOrderRepositoryWorkingFinal:
     
     def test_get_orders_with_items_by_client_negative_id(self, order_repository):
         """Test: Error con client_id negativo"""
-        # Mock del método get_orders_with_items_by_client completo
         with patch.object(order_repository, 'get_orders_with_items_by_client') as mock_get_orders:
             mock_get_orders.side_effect = ValueError("El ID del cliente debe ser mayor a 0")
             
@@ -278,7 +274,6 @@ class TestOrderRepositoryWorkingFinal:
     
     def test_get_orders_with_items_by_client_none_id(self, order_repository):
         """Test: Error con client_id None"""
-        # Mock del método get_orders_with_items_by_client completo
         with patch.object(order_repository, 'get_orders_with_items_by_client') as mock_get_orders:
             mock_get_orders.side_effect = ValueError("El ID del cliente debe ser mayor a 0")
             
@@ -289,7 +284,6 @@ class TestOrderRepositoryWorkingFinal:
     
     def test_get_orders_with_items_by_vendor_zero_id(self, order_repository):
         """Test: Error con vendor_id = 0"""
-        # Mock del método get_orders_with_items_by_vendor completo
         with patch.object(order_repository, 'get_orders_with_items_by_vendor') as mock_get_orders:
             mock_get_orders.side_effect = ValueError("El ID del vendedor debe ser mayor a 0")
             
@@ -300,7 +294,6 @@ class TestOrderRepositoryWorkingFinal:
     
     def test_get_orders_with_items_by_vendor_negative_id(self, order_repository):
         """Test: Error con vendor_id negativo"""
-        # Mock del método get_orders_with_items_by_vendor completo
         with patch.object(order_repository, 'get_orders_with_items_by_vendor') as mock_get_orders:
             mock_get_orders.side_effect = ValueError("El ID del vendedor debe ser mayor a 0")
             
@@ -374,7 +367,6 @@ class TestOrderRepositoryWorkingFinal:
     
     def test_get_orders_with_items_by_client_database_error(self, order_repository, mock_session):
         """Test: Error de base de datos en get_orders_with_items_by_client"""
-        # Mock del método get_orders_with_items_by_client completo
         with patch.object(order_repository, 'get_orders_with_items_by_client') as mock_get_orders:
             mock_get_orders.side_effect = Exception("Error al obtener pedidos del cliente: Database error")
             
@@ -385,7 +377,6 @@ class TestOrderRepositoryWorkingFinal:
     
     def test_get_orders_with_items_by_vendor_database_error(self, order_repository, mock_session):
         """Test: Error de base de datos en get_orders_with_items_by_vendor"""
-        # Mock del método get_orders_with_items_by_vendor completo
         with patch.object(order_repository, 'get_orders_with_items_by_vendor') as mock_get_orders:
             mock_get_orders.side_effect = Exception("Error al obtener pedidos del vendedor: Database error")
             

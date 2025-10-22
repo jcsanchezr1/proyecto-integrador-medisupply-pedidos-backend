@@ -32,6 +32,7 @@ def configure_routes(app):
     """Configura las rutas de la aplicación"""
     from .controllers.health_controller import HealthCheckView
     from .controllers.order_controller import OrderController, OrderDeleteAllController
+    from .controllers.order_create_controller import OrderCreateController
     
     api = Api(app)
     
@@ -39,5 +40,6 @@ def configure_routes(app):
     api.add_resource(HealthCheckView, '/orders/ping')
     
     # Order endpoints
+    api.add_resource(OrderCreateController, '/orders/create')
     api.add_resource(OrderController, '/orders')
     api.add_resource(OrderDeleteAllController, '/orders/delete-all')
