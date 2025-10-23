@@ -35,9 +35,9 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8085/orders/ping",
+					"raw": "{{url_local_pedidos}}/orders/ping",
 					"host": [
-						"http://localhost:8085"
+						"{{url_local_pedidos}}"
 					],
 					"path": [
 						"orders",
@@ -122,9 +122,9 @@
 					"raw": "{\n    \"user\": \"medisupply05@gmail.com\",\n    \"password\": \"Admin123456\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8085/auth/token",
+					"raw": "{{url_local_pedidos}}/auth/token",
 					"host": [
-						"http://localhost:8085"
+						"{{url_local_pedidos}}"
 					],
 					"path": [
 						"auth",
@@ -190,9 +190,9 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8085/orders?client_id={{client_id_valido}}",
+					"raw": "{{url_local_pedidos}}/orders?client_id={{client_id_valido}}",
 					"host": [
-						"http://localhost:8085"
+						"{{url_local_pedidos}}"
 					],
 					"path": [
 						"orders"
@@ -262,9 +262,9 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8085/orders?vendor_id={{vendor_id_valido}}",
+					"raw": "{{url_local_pedidos}}/orders?vendor_id={{vendor_id_valido}}",
 					"host": [
-						"http://localhost:8085"
+						"{{url_local_pedidos}}"
 					],
 					"path": [
 						"orders"
@@ -321,9 +321,9 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8085/orders",
+					"raw": "{{url_local_pedidos}}/orders",
 					"host": [
-						"http://localhost:8085"
+						"{{url_local_pedidos}}"
 					],
 					"path": [
 						"orders"
@@ -388,9 +388,9 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8085/orders?client_id={{client_id_invalido}}",
+					"raw": "{{url_local_pedidos}}/orders?client_id={{client_id_invalido}}",
 					"host": [
-						"http://localhost:8085"
+						"{{url_local_pedidos}}"
 					],
 					"path": [
 						"orders"
@@ -461,9 +461,9 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8085/orders?vendor_id={{vendor_id_invalido}}",
+					"raw": "{{url_local_pedidos}}/orders?vendor_id={{vendor_id_invalido}}",
 					"host": [
-						"http://localhost:8085"
+						"{{url_local_pedidos}}"
 					],
 					"path": [
 						"orders"
@@ -538,9 +538,9 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8085/orders?client_id={{client_id_sin_pedidos}}",
+					"raw": "{{url_local_pedidos}}/orders?client_id={{client_id_sin_pedidos}}",
 					"host": [
-						"http://localhost:8085"
+						"{{url_local_pedidos}}"
 					],
 					"path": [
 						"orders"
@@ -615,9 +615,9 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8085/orders?vendor_id={{vendor_id_sin_pedidos}}",
+					"raw": "{{url_local_pedidos}}/orders?vendor_id={{vendor_id_sin_pedidos}}",
 					"host": [
-						"http://localhost:8085"
+						"{{url_local_pedidos}}"
 					],
 					"path": [
 						"orders"
@@ -689,9 +689,9 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8085/orders?client_id={{client_id_ambos}}&vendor_id={{vendor_id_ambos}}",
+					"raw": "{{url_local_pedidos}}/orders?client_id={{client_id_ambos}}&vendor_id={{vendor_id_ambos}}",
 					"host": [
-						"http://localhost:8085"
+						"{{url_local_pedidos}}"
 					],
 					"path": [
 						"orders"
@@ -753,9 +753,9 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8085/orders/delete-all",
+					"raw": "{{url_local_pedidos}}/orders/delete-all",
 					"host": [
-						"http://localhost:8085"
+						"{{url_local_pedidos}}"
 					],
 					"path": [
 						"orders",
@@ -823,9 +823,9 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8085/orders?client_id=f1c2ce13-6623-4f42-a70b-9caadb7b8cbf",
+					"raw": "{{url_local_pedidos}}/orders?client_id=f1c2ce13-6623-4f42-a70b-9caadb7b8cbf",
 					"host": [
-						"http://localhost:8085"
+						"{{url_local_pedidos}}"
 					],
 					"path": [
 						"orders"
@@ -916,9 +916,9 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8085/orders?client_id={{client_id_estructura}}",
+					"raw": "{{url_local_pedidos}}/orders?client_id={{client_id_estructura}}",
 					"host": [
-						"http://localhost:8085"
+						"{{url_local_pedidos}}"
 					],
 					"path": [
 						"orders"
@@ -997,9 +997,9 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8085/orders?client_id={{client_id_items}}",
+					"raw": "{{url_local_pedidos}}/orders?client_id={{client_id_items}}",
 					"host": [
-						"http://localhost:8085"
+						"{{url_local_pedidos}}"
 					],
 					"path": [
 						"orders"
@@ -1092,6 +1092,11 @@
 					{
 						"key": "Content-Type",
 						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
 					}
 				],
 				"body": {
@@ -1099,12 +1104,10 @@
 					"raw": "{\n    \"sku\": \"{{test_product_1_sku}}\",\n    \"name\": \"{{test_product_1_name}}\",\n    \"description\": \"Producto de prueba para pedidos\",\n    \"expiration_date\": \"2025-12-31\",\n    \"quantity\": {{test_product_1_quantity}},\n    \"price\": {{test_product_1_price}},\n    \"location\": \"{{test_product_1_location}}\",\n    \"product_type\": \"{{test_product_1_tipo}}\",\n    \"provider_id\": \"6df72291-03ca-4e68-832e-d069e906c85c\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8084/inventory/products",
-					"protocol": "http",
+					"raw": "{{url_local_inventario}}/inventory/products",
 					"host": [
-						"localhost"
+						"{{url_local_inventario}}"
 					],
-					"port": "8084",
 					"path": [
 						"inventory",
 						"products"
@@ -1180,6 +1183,11 @@
 					{
 						"key": "Content-Type",
 						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
 					}
 				],
 				"body": {
@@ -1187,12 +1195,10 @@
 					"raw": "{\n    \"sku\": \"{{test_product_2_sku}}\",\n    \"name\": \"{{test_product_2_name}}\",\n    \"description\": \"Producto de prueba para pedidos\",\n    \"expiration_date\": \"2025-12-31\",\n    \"quantity\": {{test_product_2_quantity}},\n    \"price\": {{test_product_2_price}},\n    \"location\": \"{{test_product_2_location}}\",\n    \"product_type\": \"{{test_product_2_tipo}}\",\n    \"provider_id\": \"6df72291-03ca-4e68-832e-d069e906c85c\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8084/inventory/products",
-					"protocol": "http",
+					"raw": "{{url_local_inventario}}/inventory/products",
 					"host": [
-						"localhost"
+						"{{url_local_inventario}}"
 					],
-					"port": "8084",
 					"path": [
 						"inventory",
 						"products"
@@ -1284,6 +1290,11 @@
 					{
 						"key": "Content-Type",
 						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
 					}
 				],
 				"body": {
@@ -1291,12 +1302,10 @@
 					"raw": "{\n    \"client_id\": \"{{test_order_client_id}}\",\n    \"total_amount\": {{test_order_total_amount}},\n    \"scheduled_delivery_date\": \"{{test_order_delivery_date}}\",\n    \"items\": [\n        {\n            \"product_id\": {{test_product_1_id}},\n            \"quantity\": {{test_order_quantity}}\n        }\n    ]\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8085/orders/create",
-					"protocol": "http",
+					"raw": "{{url_local_pedidos}}/orders/create",
 					"host": [
-						"localhost"
+						"{{url_local_pedidos}}"
 					],
-					"port": "8085",
 					"path": [
 						"orders",
 						"create"
@@ -1385,6 +1394,11 @@
 					{
 						"key": "Content-Type",
 						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
 					}
 				],
 				"body": {
@@ -1392,12 +1406,10 @@
 					"raw": "{\n    \"client_id\": \"{{test_order_multi_client_id}}\",\n    \"total_amount\": {{test_order_multi_total_amount}},\n    \"scheduled_delivery_date\": \"{{test_order_multi_delivery_date}}\",\n    \"items\": [\n        {\n            \"product_id\": {{test_product_1_id}},\n            \"quantity\": {{test_order_multi_quantity1}}\n        },\n        {\n            \"product_id\": {{test_product_2_id}},\n            \"quantity\": {{test_order_multi_quantity2}}\n        }\n    ]\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8085/orders/create",
-					"protocol": "http",
+					"raw": "{{url_local_pedidos}}/orders/create",
 					"host": [
-						"localhost"
+						"{{url_local_pedidos}}"
 					],
-					"port": "8085",
 					"path": [
 						"orders",
 						"create"
@@ -1465,6 +1477,11 @@
 					{
 						"key": "Content-Type",
 						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
 					}
 				],
 				"body": {
@@ -1472,12 +1489,10 @@
 					"raw": "{\n    \"client_id\": \"{{test_order_error_client_id}}\",\n    \"total_amount\": {{test_order_error_total_amount}},\n    \"scheduled_delivery_date\": \"{{test_order_error_delivery_date}}\",\n    \"items\": [\n        {\n            \"product_id\": {{test_product_1_id}},\n            \"quantity\": {{test_order_error_quantity}}\n        }\n    ]\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8085/orders/create",
-					"protocol": "http",
+					"raw": "{{url_local_pedidos}}/orders/create",
 					"host": [
-						"localhost"
+						"{{url_local_pedidos}}"
 					],
-					"port": "8085",
 					"path": [
 						"orders",
 						"create"
@@ -1518,18 +1533,22 @@
 			],
 			"request": {
 				"method": "POST",
-				"header": [],
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:8085/orders/create",
-					"protocol": "http",
+					"raw": "{{url_local_pedidos}}/orders/create",
 					"host": [
-						"localhost"
+						"{{url_local_pedidos}}"
 					],
-					"port": "8085",
 					"path": [
 						"orders",
 						"create"
@@ -1573,14 +1592,18 @@
 			],
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
 				"url": {
-					"raw": "http://localhost:8084/inventory/products/{{test_product_1_id}}",
-					"protocol": "http",
+					"raw": "{{url_local_inventario}}/inventory/products/{{test_product_1_id}}",
 					"host": [
-						"localhost"
+						"{{url_local_inventario}}"
 					],
-					"port": "8084",
 					"path": [
 						"inventory",
 						"products",
@@ -1617,14 +1640,18 @@
 			],
 			"request": {
 				"method": "DELETE",
-				"header": [],
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
 				"url": {
-					"raw": "http://localhost:8084/inventory/products/{{test_product_1_id}}",
-					"protocol": "http",
+					"raw": "{{url_local_inventario}}/inventory/products/{{test_product_1_id}}",
 					"host": [
-						"localhost"
+						"{{url_local_inventario}}"
 					],
-					"port": "8084",
 					"path": [
 						"inventory",
 						"products",
@@ -1661,14 +1688,18 @@
 			],
 			"request": {
 				"method": "DELETE",
-				"header": [],
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
 				"url": {
-					"raw": "http://localhost:8084/inventory/products/{{test_product_2_id}}",
-					"protocol": "http",
+					"raw": "{{url_local_inventario}}/inventory/products/{{test_product_2_id}}",
 					"host": [
-						"localhost"
+						"{{url_local_inventario}}"
 					],
-					"port": "8084",
 					"path": [
 						"inventory",
 						"products",
@@ -1682,12 +1713,12 @@
 	"variable": [
 		{
 			"key": "url_local_pedidos",
-			"value": "http://localhost:8085",
+			"value": "http://localhost:8082",
 			"type": "string"
 		},
 		{
 			"key": "url_local_inventario",
-			"value": "http://localhost:8084",
+			"value": "http://localhost:8082",
 			"type": "string"
 		}
 	]
