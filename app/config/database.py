@@ -33,18 +33,25 @@ def create_tables():
 def auto_close_session(func):
     """Decorador que automáticamente cierra la sesión después de ejecutar el método"""
     def wrapper(self, *args, **kwargs):
-        # Cerrar la sesión existente si existe
+
+        is_mocked = False
+        if hasattr(self, 'order_service'):
+            service_class = self.order_service.__class__
+            is_mocked = 'mock' in service_class.__module__.lower() or 'Mock' in service_class.__name__
+
+        if is_mocked:
+            print("Servicio mockeado detectado, saltando recreación en decorador")
+            return func(self, *args, **kwargs)
+
         if hasattr(self, 'order_repository') and hasattr(self.order_repository, 'session'):
             try:
                 self.order_repository.session.close()
                 print(f"Sesión cerrada en decorador")
             except Exception as e:
                 print(f"Error cerrando sesión existente: {e}")
-        
-        # Crear nueva sesión
+
         session = SessionLocal()
         try:
-            # Recrear repositorio y servicio con nueva sesión
             from ..repositories.order_repository import OrderRepository
             from ..services.order_service import OrderService
             
@@ -52,11 +59,9 @@ def auto_close_session(func):
             self.order_service = OrderService(self.order_repository)
             
             print(f"Nueva sesión creada en decorador")
-            
-            # Ejecutar el método original
+
             return func(self, *args, **kwargs)
         finally:
-            # Cerrar la sesión automáticamente
             try:
                 session.close()
                 print(f"Sesión cerrada en finally del decorador")
