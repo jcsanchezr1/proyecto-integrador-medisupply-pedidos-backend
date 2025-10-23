@@ -217,7 +217,7 @@ class TestOrderCreateController:
             'client_id': '123e4567-e89b-12d3-a456-426614174000',
             'vendor_id': '456e7890-e89b-12d3-a456-426614174001',
             'total_amount': 150.0,
-            'scheduled_delivery_date': '2025-12-25',
+            'scheduled_delivery_date': 'invalid-date-format',
             'items': [{'product_id': 1, 'quantity': 2}]
         }
         

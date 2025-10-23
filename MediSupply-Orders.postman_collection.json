@@ -485,8 +485,9 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"const clientIdSinPedidos = Math.floor(Math.random() * 1000) + 10000;",
-							"pm.environment.set(\"client_id_sin_pedidos\", \"550e8400-e29b-41d4-a716-446655440000\");",
+							"// Generar un UUID aleatorio que muy probablemente no tenga pedidos",
+							"const clientIdSinPedidos = 'aaaaaaaa-bbbb-cccc-dddd-' + Math.floor(Math.random() * 1000000000000);",
+							"pm.environment.set(\"client_id_sin_pedidos\", clientIdSinPedidos);",
 							"console.log('Cliente ID sin pedidos generado:', clientIdSinPedidos);"
 						],
 						"type": "text/javascript",
@@ -1508,8 +1509,8 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test('Status code is 400', function () {",
-							"    pm.response.to.have.status(400);",
+							"pm.test('Status code is 422', function () {",
+							"    pm.response.to.have.status(422);",
 							"});",
 							"pm.test('Response is JSON', function () {",
 							"    pm.response.to.be.json;",

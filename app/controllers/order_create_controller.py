@@ -29,41 +29,44 @@ class OrderCreateController(BaseController, Resource):
             try:
                 data = request.get_json()
             except Exception:
-                return self.error_response("Error de validación", "Se requiere un cuerpo JSON válido", 400)
+                return self.error_response("Error de validación", "Se requiere un cuerpo JSON válido", 422)
             
             if not data:
-                return self.error_response("Error de validación", "Se requiere un cuerpo JSON", 400)
+                return self.error_response("Error de validación", "Se requiere un cuerpo JSON", 422)
 
             if not data.get('client_id') and not data.get('vendor_id'):
-                return self.error_response("Error de validación", "Debe proporcionar al menos 'client_id' o 'vendor_id'", 400)
+                return self.error_response("Error de validación", "Debe proporcionar al menos 'client_id' o 'vendor_id'", 422)
             
-            if not data.get('items'):
-                return self.error_response("Error de validación", "El campo 'items' es obligatorio", 400)
+            if 'items' not in data:
+                return self.error_response("Error de validación", "El campo 'items' es obligatorio", 422)
             
             if not isinstance(data['items'], list) or len(data['items']) == 0:
-                return self.error_response("Error de validación", "El pedido debe tener al menos un item", 400)
+                return self.error_response("Error de validación", "El pedido debe tener al menos un item", 422)
             
             if not data.get('total_amount'):
-                return self.error_response("Error de validación", "El campo 'total_amount' es obligatorio", 400)
+                return self.error_response("Error de validación", "El campo 'total_amount' es obligatorio", 422)
             
             if not isinstance(data['total_amount'], (int, float)) or data['total_amount'] <= 0:
-                return self.error_response("Error de validación", "El 'total_amount' debe ser un número mayor a 0", 400)
+                return self.error_response("Error de validación", "El 'total_amount' debe ser un número mayor a 0", 422)
             
             if not data.get('scheduled_delivery_date'):
-                return self.error_response("Error de validación", "El campo 'scheduled_delivery_date' es obligatorio", 400)
+                return self.error_response("Error de validación", "El campo 'scheduled_delivery_date' es obligatorio", 422)
 
             try:
                 from datetime import datetime
-                datetime.fromisoformat(data['scheduled_delivery_date'].replace('Z', '+00:00'))
+                scheduled_date = datetime.fromisoformat(data['scheduled_delivery_date'].replace('Z', '+00:00'))
+
+                if scheduled_date < datetime.now(scheduled_date.tzinfo):
+                    return self.error_response("Error de validación", "La fecha programada no puede ser en el pasado", 422)
             except (ValueError, AttributeError):
-                return self.error_response("Error de validación", "El 'scheduled_delivery_date' debe tener formato ISO 8601 válido", 400)
+                return self.error_response("Error de validación", "El 'scheduled_delivery_date' debe tener formato ISO 8601 válido", 422)
 
             for i, item in enumerate(data['items']):
                 if not item.get('product_id'):
-                    return self.error_response("Error de validación", f"El item {i+1} debe tener un 'product_id'", 400)
+                    return self.error_response("Error de validación", f"El item {i+1} debe tener un 'product_id'", 422)
                 
                 if not item.get('quantity') or not isinstance(item['quantity'], (int, float)) or item['quantity'] <= 0:
-                    return self.error_response("Error de validación", f"El item {i+1} debe tener una 'quantity' válida mayor a 0", 400)
+                    return self.error_response("Error de validación", f"El item {i+1} debe tener una 'quantity' válida mayor a 0", 422)
 
             print("=== LLAMANDO order_service.create_order ===")
             order = self.order_service.create_order(data)
@@ -74,7 +77,7 @@ class OrderCreateController(BaseController, Resource):
             )
             
         except OrderValidationError as e:
-            return self.error_response("Error de validación", str(e), 400)
+            return self.error_response("Error de validación", str(e), 422)
         except OrderBusinessLogicError as e:
             return self.error_response("Error de lógica de negocio", str(e), 422)
         except Exception as e:
