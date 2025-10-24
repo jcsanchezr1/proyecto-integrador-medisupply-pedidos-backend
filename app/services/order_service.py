@@ -32,6 +32,8 @@ class OrderService:
         
         try:
             orders = self.order_repository.get_orders_with_items_by_client(client_id)
+            for order in orders:
+                self._enrich_order_items_with_product_info(order)
             return orders
         except ValueError as e:
             raise OrderValidationError(str(e))
@@ -46,6 +48,8 @@ class OrderService:
         
         try:
             orders = self.order_repository.get_orders_with_items_by_vendor(vendor_id)
+            for order in orders:
+                self._enrich_order_items_with_product_info(order)
             return orders
         except ValueError as e:
             raise OrderValidationError(str(e))
@@ -56,6 +60,8 @@ class OrderService:
         """Obtiene todos los pedidos"""
         try:
             orders = self.order_repository.get_all()
+            for order in orders:
+                self._enrich_order_items_with_product_info(order)
             return orders
         except Exception as e:
             raise OrderBusinessLogicError(f"Error al obtener todos los pedidos: {str(e)}")
@@ -70,44 +76,25 @@ class OrderService:
     
     def _enrich_order_items_with_product_info(self, order: Order) -> Order:
         """Enriquece los items del pedido con información del producto"""
-        # URL del servicio de inventarios desde variable de entorno
-        inventory_service_url = os.getenv('INVENTORY_SERVICE_URL', 'http://medisupply-inventarios:8080')
-        logger.info(f"Usando URL de inventario para enriquecimiento: {inventory_service_url}")
+        logger.info(f"Enriqueciendo {len(order.items)} items del pedido {order.order_number}")
         
         for item in order.items:
             try:
-                # Consultar información del producto en el servicio de inventarios
-                response = requests.get(f"{inventory_service_url}/inventory/products/{item.product_id}", timeout=5)
+                product_info = self.inventory_service.get_product_by_id(item.product_id)
+
+                item.product_name = product_info.get('name', '')
+                item.product_image_url = product_info.get('image_url', '')
+                item.unit_price = product_info.get('price', 0.0)
+                item.product_sku = product_info.get('sku', '')
                 
-                if response.status_code == 200:
-                    product_data = response.json()
-                    if product_data.get('success') and product_data.get('data'):
-                        # Producto encontrado exitosamente
-                        product = product_data['data']
-                        item.product_name = product.get('name')
-                        item.product_image_url = product.get('photo_url')
-                        item.unit_price = product.get('price')
-                    else:
-                        # Producto no encontrado en inventario - dejar campos como null
-                        item.product_name = None
-                        item.product_image_url = None
-                        item.unit_price = None
-                else:
-                    # Error en la consulta - dejar campos como null
-                    item.product_name = None
-                    item.product_image_url = None
-                    item.unit_price = None
+                logger.debug(f"Item {item.product_id} enriquecido: name='{item.product_name}', sku='{item.product_sku}'")
                     
-            except requests.exceptions.RequestException:
-                # Error de conexión - dejar campos como null
-                item.product_name = None
-                item.product_image_url = None
-                item.unit_price = None
-            except Exception:
-                # Cualquier otro error - dejar campos como null
-                item.product_name = None
-                item.product_image_url = None
-                item.unit_price = None
+            except Exception as e:
+                logger.warning(f"Error al enriquecer item {item.product_id}: {str(e)}")
+                item.product_name = ''
+                item.product_image_url = ''
+                item.unit_price = 0.0
+                item.product_sku = ''
         
         return order
     

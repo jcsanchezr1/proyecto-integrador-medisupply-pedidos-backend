@@ -169,3 +169,75 @@ class InventoryService:
             updates_info.append(update_info)
         
         return updates_info
+    
+    def get_product_by_id(self, product_id: int) -> Dict:
+        """
+        Obtiene información de un producto por su ID
+        
+        Args:
+            product_id: ID del producto
+            
+        Returns:
+            Dict con información del producto o campos vacíos si no existe
+        """
+        try:
+            response = requests.get(f"{self.base_url}/inventory/products/{product_id}")
+            
+            if response.status_code == 404:
+                logger.warning(f"Producto con ID {product_id} no encontrado en inventario")
+                return {
+                    'product_id': product_id,
+                    'name': '',
+                    'image_url': '',
+                    'sku': '',
+                    'price': 0.0
+                }
+            
+            if response.status_code != 200:
+                logger.warning(f"Error al consultar producto {product_id}: {response.status_code}")
+                return {
+                    'product_id': product_id,
+                    'name': '',
+                    'image_url': '',
+                    'sku': '',
+                    'price': 0.0
+                }
+            
+            product_data = response.json()
+            if not product_data.get('success'):
+                logger.warning(f"Error al obtener producto {product_id}: {product_data.get('error')}")
+                return {
+                    'product_id': product_id,
+                    'name': '',
+                    'image_url': '',
+                    'sku': '',
+                    'price': 0.0
+                }
+            
+            product_info = product_data['data']
+            return {
+                'product_id': product_id,
+                'name': product_info.get('name', ''),
+                'image_url': product_info.get('photo_url', ''),  # Usar photo_url del servicio de inventarios
+                'sku': product_info.get('sku', ''),
+                'price': product_info.get('price', 0.0)
+            }
+            
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Error de conexión al consultar producto {product_id}: {str(e)}")
+            return {
+                'product_id': product_id,
+                'name': '',
+                'image_url': '',
+                'sku': '',
+                'price': 0.0
+            }
+        except Exception as e:
+            logger.warning(f"Error inesperado al consultar producto {product_id}: {str(e)}")
+            return {
+                'product_id': product_id,
+                'name': '',
+                'image_url': '',
+                'sku': '',
+                'price': 0.0
+            }
