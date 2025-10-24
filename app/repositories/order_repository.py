@@ -49,8 +49,9 @@ class OrderRepository(BaseRepository):
             raise Exception(f"Error al obtener pedidos del vendedor: {str(e)}")
     
     def create(self, order: Order) -> Order:
-        """Crea un nuevo pedido"""
+        """Crea un nuevo pedido con sus items"""
         try:
+            # Crear el pedido principal
             db_order = OrderDB(
                 order_number=order.order_number,
                 client_id=order.client_id,
@@ -61,9 +62,20 @@ class OrderRepository(BaseRepository):
                 assigned_truck=order.assigned_truck
             )
             self.session.add(db_order)
+            self.session.flush()
+                        
+            for item in order.items:
+                db_item = OrderItemDB(
+                    order_id=db_order.id,
+                    product_id=item.product_id,
+                    quantity=item.quantity
+                )
+                self.session.add(db_item)
+            
             self.session.commit()
             self.session.refresh(db_order)
-            return self._db_to_model(db_order)
+
+            return self._db_to_model_with_items(db_order)
         except SQLAlchemyError as e:
             self.session.rollback()
             raise Exception(f"Error al crear pedido: {str(e)}")
