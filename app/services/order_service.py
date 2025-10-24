@@ -125,9 +125,8 @@ class OrderService:
             OrderBusinessLogicError: Si no hay stock suficiente o error en creación
         """
         try:
-            print("=== INICIANDO create_order ===")
-            logger.info(f"=== INICIANDO create_order ===")
-            logger.info(f"Iniciando creación de pedido con {len(order_data.get('items', []))} items")
+            logger.info("Iniciando create_order")
+            logger.info(f"Creando pedido con {len(order_data.get('items', []))} items")
             
             if not order_data.get('client_id') and not order_data.get('vendor_id'):
                 raise OrderValidationError("Debe proporcionar al menos client_id o vendor_id")

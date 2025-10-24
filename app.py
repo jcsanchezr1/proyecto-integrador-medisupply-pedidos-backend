@@ -2,7 +2,10 @@
 Punto de entrada principal de la aplicación
 """
 import os
+import logging
 from app import create_app
+
+logger = logging.getLogger(__name__)
 
 # Crear la aplicación
 app = create_app()
@@ -13,7 +16,7 @@ if __name__ == '__main__':
     port = int(os.getenv('PORT', 8080))
     debug = os.getenv('DEBUG', 'True').lower() == 'true'
     
-    print(f"Starting MediSupply Orders Backend on {host}:{port}")
-    print(f"Debug mode: {debug}")
+    logger.info(f"Starting MediSupply Orders Backend on {host}:{port}")
+    logger.info(f"Debug mode: {debug}")
     
     app.run(host=host, port=port, debug=debug)
