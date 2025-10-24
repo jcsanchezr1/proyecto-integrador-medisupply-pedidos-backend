@@ -43,15 +43,15 @@ def auto_close_session(func):
             is_mocked = 'mock' in service_class.__module__.lower() or 'Mock' in service_class.__name__
 
         if is_mocked:
-            logger.debug("Servicio mockeado detectado, saltando recreación en decorador")
+            logger.debug("Servicio mockeado detectado, saltando recreacion en decorador")
             return func(self, *args, **kwargs)
 
         if hasattr(self, 'order_repository') and hasattr(self.order_repository, 'session'):
             try:
                 self.order_repository.session.close()
-                logger.debug("Sesión cerrada en decorador")
+                logger.debug("Sesion cerrada en decorador")
             except Exception as e:
-                logger.warning(f"Error cerrando sesión existente: {e}")
+                logger.warning(f"Error cerrando sesion existente: {e}")
 
         session = SessionLocal()
         try:
@@ -61,14 +61,14 @@ def auto_close_session(func):
             self.order_repository = OrderRepository(session)
             self.order_service = OrderService(self.order_repository)
             
-            logger.debug("Nueva sesión creada en decorador")
+            logger.debug("Nueva sesion creada en decorador")
 
             return func(self, *args, **kwargs)
         finally:
             try:
                 session.close()
-                logger.debug("Sesión cerrada en finally del decorador")
+                logger.debug("Sesion cerrada en finally del decorador")
             except Exception as e:
-                logger.warning(f"Error cerrando sesión en finally: {e}")
+                logger.warning(f"Error cerrando sesion en finally: {e}")
     
     return wrapper

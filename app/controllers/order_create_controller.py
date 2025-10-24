@@ -27,7 +27,7 @@ class OrderCreateController(BaseController, Resource):
     @auto_close_session
     def post(self) -> Tuple[Dict[str, Any], int]:
         """POST /orders - Crear un nuevo pedido"""
-        logger.info("POST /orders/create - Iniciando creación de pedido")
+        logger.info("POST /orders/create - Iniciando creacion de pedido")
         try:
             try:
                 data = request.get_json()

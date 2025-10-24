@@ -9,6 +9,8 @@ from app.config.logging_config import setup_logging
 # Configurar logging
 logger = setup_logging()
 
+logger = logging.getLogger(__name__)
+
 # Crear la aplicación
 app = create_app()
 
