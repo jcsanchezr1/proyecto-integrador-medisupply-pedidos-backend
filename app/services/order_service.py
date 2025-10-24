@@ -70,8 +70,9 @@ class OrderService:
     
     def _enrich_order_items_with_product_info(self, order: Order) -> Order:
         """Enriquece los items del pedido con información del producto"""
-        # URL del servicio de inventarios
-        inventory_service_url = os.getenv('INVENTORY_SERVICE_URL', 'http://host.docker.internal:8084')
+        # URL del servicio de inventarios desde variable de entorno
+        inventory_service_url = os.getenv('INVENTORY_SERVICE_URL', 'http://medisupply-inventarios:8080')
+        logger.info(f"Usando URL de inventario para enriquecimiento: {inventory_service_url}")
         
         for item in order.items:
             try:

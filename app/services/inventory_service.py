@@ -1,16 +1,25 @@
 """
 Servicio para comunicación con el servicio de inventarios
 """
+import os
+import logging
 import requests
 from typing import Dict, List, Tuple
 from ..exceptions.custom_exceptions import OrderBusinessLogicError
+
+logger = logging.getLogger(__name__)
 
 
 class InventoryService:
     """Servicio para comunicación con inventarios"""
     
-    def __init__(self, inventory_base_url: str = "http://medisupply-inventarios:8080"):
-        self.base_url = inventory_base_url
+    def __init__(self, inventory_base_url: str = None):
+        # Usar variable de entorno o URL por defecto
+        self.base_url = inventory_base_url or os.getenv(
+            'INVENTORY_SERVICE_URL', 
+            'http://medisupply-inventarios:8080'
+        )
+        logger.info(f"InventoryService inicializado con URL: {self.base_url}")
     
     def check_product_availability(self, product_id: int, required_quantity: int) -> Dict:
         """
