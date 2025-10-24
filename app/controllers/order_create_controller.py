@@ -1,6 +1,7 @@
 """
 Controlador para creación de pedidos
 """
+import logging
 from flask_restful import Resource
 from flask import request
 from typing import Dict, Any, Tuple
@@ -10,12 +11,14 @@ from ..exceptions.custom_exceptions import OrderValidationError, OrderBusinessLo
 from .base_controller import BaseController
 from ..config.database import auto_close_session
 
+logger = logging.getLogger(__name__)
+
 
 class OrderCreateController(BaseController, Resource):
     """Controlador para creación de pedidos"""
     
     def __init__(self):
-        print("=== INICIALIZANDO OrderCreateController ===")
+        logger.debug("Inicializando OrderCreateController")
         from ..config.database import SessionLocal
         session = SessionLocal()
         self.order_repository = OrderRepository(session)
@@ -24,7 +27,7 @@ class OrderCreateController(BaseController, Resource):
     @auto_close_session
     def post(self) -> Tuple[Dict[str, Any], int]:
         """POST /orders - Crear un nuevo pedido"""
-        print("=== INICIANDO OrderCreateController.post ===")
+        logger.info("POST /orders/create - Iniciando creación de pedido")
         try:
             try:
                 data = request.get_json()
@@ -68,7 +71,7 @@ class OrderCreateController(BaseController, Resource):
                 if not item.get('quantity') or not isinstance(item['quantity'], (int, float)) or item['quantity'] <= 0:
                     return self.error_response("Error de validación", f"El item {i+1} debe tener una 'quantity' válida mayor a 0", 422)
 
-            print("=== LLAMANDO order_service.create_order ===")
+            logger.debug("Invocando order_service.create_order")
             order = self.order_service.create_order(data)
             
             return self.created_response(
