@@ -36,8 +36,11 @@ class TestOrderServiceExtended:
     def test_get_all_orders_success(self):
         """Test: get_all_orders exitoso """
         mock_orders = [MagicMock(spec=Order), MagicMock(spec=Order)]
+        for i, order in enumerate(mock_orders):
+            order.items = []
+            order.order_number = f"PED-20240101-{i:05d}"
         self.mock_repository.get_all.return_value = mock_orders
-        
+    
         result = self.service.get_all_orders()
         
         assert result == mock_orders
@@ -76,9 +79,9 @@ class TestOrderServiceExtended:
         with patch('requests.get', return_value=mock_response):
             result = self.service._enrich_order_items_with_product_info(order)
 
-        assert result.items[0].product_name is None
-        assert result.items[0].product_image_url is None
-        assert result.items[0].unit_price is None
+        assert result.items[0].product_name == ''
+        assert result.items[0].product_image_url == ''
+        assert result.items[0].unit_price == 0.0
     
     def test_enrich_order_items_request_exception(self):
         """Test: _enrich_order_items_with_product_info - RequestException (líneas 96-100)"""
@@ -99,9 +102,9 @@ class TestOrderServiceExtended:
         with patch('requests.get', side_effect=Exception("Connection error")):
             result = self.service._enrich_order_items_with_product_info(order)
 
-        assert result.items[0].product_name is None
-        assert result.items[0].product_image_url is None
-        assert result.items[0].unit_price is None
+        assert result.items[0].product_name == ''
+        assert result.items[0].product_image_url == ''
+        assert result.items[0].unit_price == 0.0
     
     def test_enrich_order_items_general_exception(self):
         """Test: _enrich_order_items_with_product_info - Exception general (líneas 96-100)"""
@@ -123,9 +126,9 @@ class TestOrderServiceExtended:
         with patch('requests.get', side_effect=Exception("General error")):
             result = self.service._enrich_order_items_with_product_info(order)
 
-        assert result.items[0].product_name is None
-        assert result.items[0].product_image_url is None
-        assert result.items[0].unit_price is None
+        assert result.items[0].product_name == ''
+        assert result.items[0].product_image_url == ''
+        assert result.items[0].unit_price == 0.0
     
     def test_enrich_order_items_success_with_data(self):
         """Test: _enrich_order_items_with_product_info - éxito con datos"""
@@ -182,9 +185,9 @@ class TestOrderServiceExtended:
         with patch('requests.get', return_value=mock_response):
             result = self.service._enrich_order_items_with_product_info(order)
 
-        assert result.items[0].product_name is None
-        assert result.items[0].product_image_url is None
-        assert result.items[0].unit_price is None
+        assert result.items[0].product_name == ''
+        assert result.items[0].product_image_url == ''
+        assert result.items[0].unit_price == 0.0
     
     def test_enrich_order_items_empty_items(self):
         """Test: _enrich_order_items_with_product_info - sin items"""
@@ -207,7 +210,7 @@ class TestOrderServiceExtended:
             client_id="6ba7b815-9dad-11d1-80b4-00c04fd430c8",
             vendor_id="6ba7b816-9dad-11d1-80b4-00c04fd430c8"
         )
-        
+    
         item = OrderItem(
             id=1,
             order_id=1,
@@ -216,25 +219,19 @@ class TestOrderServiceExtended:
         )
         order.items = [item]
 
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {
-            'success': True,
-            'data': {
-                'name': 'Test Product',
-                'photo_url': 'http://example.com/photo.jpg',
-                'price': 15.00
-            }
+        mock_inventory_service = MagicMock()
+        mock_inventory_service.get_product_by_id.return_value = {
+            'product_id': 101,
+            'name': 'Test Product',
+            'image_url': 'http://example.com/photo.jpg',
+            'sku': 'TEST-001',
+            'price': 15.00
         }
         
-        with patch('requests.get', return_value=mock_response) as mock_get:
-            with patch.dict('os.environ', {'INVENTORY_SERVICE_URL': 'http://custom-inventory:8080'}):
-                result = self.service._enrich_order_items_with_product_info(order)
-
-        mock_get.assert_called_once_with(
-            "http://custom-inventory:8080/inventory/products/101",
-            timeout=5
-        )
+        with patch.object(self.service, 'inventory_service', mock_inventory_service):
+            result = self.service._enrich_order_items_with_product_info(order)
+    
+        mock_inventory_service.get_product_by_id.assert_called_once_with(101)
 
         assert result.items[0].product_name == 'Test Product'
         assert result.items[0].product_image_url == 'http://example.com/photo.jpg'
@@ -243,8 +240,11 @@ class TestOrderServiceExtended:
     def test_get_orders_by_client_success(self):
         """Test: get_orders_by_client exitoso (línea 27)"""
         mock_orders = [MagicMock(spec=Order), MagicMock(spec=Order)]
+        for i, order in enumerate(mock_orders):
+            order.items = []
+            order.order_number = f"PED-20240101-{i:05d}"
         self.mock_repository.get_orders_with_items_by_client.return_value = mock_orders
-        
+    
         result = self.service.get_orders_by_client(1)
         
         assert result == mock_orders
@@ -260,8 +260,11 @@ class TestOrderServiceExtended:
     def test_get_orders_by_vendor_success(self):
         """Test: get_orders_by_vendor exitoso (línea 41)"""
         mock_orders = [MagicMock(spec=Order), MagicMock(spec=Order)]
+        for i, order in enumerate(mock_orders):
+            order.items = []
+            order.order_number = f"PED-20240101-{i:05d}"
         self.mock_repository.get_orders_with_items_by_vendor.return_value = mock_orders
-        
+    
         result = self.service.get_orders_by_vendor(1)
         
         assert result == mock_orders
@@ -310,9 +313,9 @@ class TestOrderServiceExtended:
         with patch('requests.get', side_effect=requests.exceptions.RequestException("Connection timeout")):
             result = self.service._enrich_order_items_with_product_info(order)
 
-        assert result.items[0].product_name is None
-        assert result.items[0].product_image_url is None
-        assert result.items[0].unit_price is None
+        assert result.items[0].product_name == ''
+        assert result.items[0].product_image_url == ''
+        assert result.items[0].unit_price == 0.0
     
     def test_get_orders_by_client_zero_id(self):
         """Test: get_orders_by_client con ID cero """
@@ -344,9 +347,9 @@ class TestOrderServiceExtended:
         with patch('requests.get', side_effect=Exception("General error")):
             result = self.service._enrich_order_items_with_product_info(order)
 
-        assert result.items[0].product_name is None
-        assert result.items[0].product_image_url is None
-        assert result.items[0].unit_price is None
+        assert result.items[0].product_name == ''
+        assert result.items[0].product_image_url == ''
+        assert result.items[0].unit_price == 0.0
     
     def test_enrich_order_items_json_decode_error(self):
         """Test: _enrich_order_items_with_product_info - JSON decode error (líneas 96-100)"""
@@ -371,9 +374,9 @@ class TestOrderServiceExtended:
         with patch('requests.get', return_value=mock_response):
             result = self.service._enrich_order_items_with_product_info(order)
 
-        assert result.items[0].product_name is None
-        assert result.items[0].product_image_url is None
-        assert result.items[0].unit_price is None
+        assert result.items[0].product_name == ''
+        assert result.items[0].product_image_url == ''
+        assert result.items[0].unit_price == 0.0
     
     def test_enrich_order_items_attribute_error(self):
         """Test: _enrich_order_items_with_product_info - AttributeError"""
@@ -401,9 +404,9 @@ class TestOrderServiceExtended:
         with patch('requests.get', side_effect=mock_get):
             result = self.service._enrich_order_items_with_product_info(order)
 
-        assert result.items[0].product_name is None
-        assert result.items[0].product_image_url is None
-        assert result.items[0].unit_price is None
+        assert result.items[0].product_name == ''
+        assert result.items[0].product_image_url == ''
+        assert result.items[0].unit_price == 0.0
     
     def test_enrich_order_items_key_error(self):
         """Test: _enrich_order_items_with_product_info - KeyError """
@@ -428,9 +431,9 @@ class TestOrderServiceExtended:
         with patch('requests.get', side_effect=mock_get):
             result = self.service._enrich_order_items_with_product_info(order)
 
-        assert result.items[0].product_name is None
-        assert result.items[0].product_image_url is None
-        assert result.items[0].unit_price is None
+        assert result.items[0].product_name == ''
+        assert result.items[0].product_image_url == ''
+        assert result.items[0].unit_price == 0.0
     
     def test_enrich_order_items_type_error(self):
         """Test: _enrich_order_items_with_product_info - TypeError """
@@ -454,9 +457,9 @@ class TestOrderServiceExtended:
         with patch('requests.get', side_effect=mock_get):
             result = self.service._enrich_order_items_with_product_info(order)
 
-        assert result.items[0].product_name is None
-        assert result.items[0].product_image_url is None
-        assert result.items[0].unit_price is None
+        assert result.items[0].product_name == ''
+        assert result.items[0].product_image_url == ''
+        assert result.items[0].unit_price == 0.0
     
     def test_enrich_order_items_runtime_error(self):
         """Test: _enrich_order_items_with_product_info - RuntimeError """
@@ -481,9 +484,9 @@ class TestOrderServiceExtended:
         with patch('requests.get', side_effect=mock_get):
             result = self.service._enrich_order_items_with_product_info(order)
 
-        assert result.items[0].product_name is None
-        assert result.items[0].product_image_url is None
-        assert result.items[0].unit_price is None
+        assert result.items[0].product_name == ''
+        assert result.items[0].product_image_url == ''
+        assert result.items[0].unit_price == 0.0
     
     def test_enrich_order_items_os_error(self):
         """Test: _enrich_order_items_with_product_info - OSError """
@@ -508,6 +511,6 @@ class TestOrderServiceExtended:
         with patch('requests.get', side_effect=mock_get):
             result = self.service._enrich_order_items_with_product_info(order)
 
-        assert result.items[0].product_name is None
-        assert result.items[0].product_image_url is None
-        assert result.items[0].unit_price is None
+        assert result.items[0].product_name == ''
+        assert result.items[0].product_image_url == ''
+        assert result.items[0].unit_price == 0.0
