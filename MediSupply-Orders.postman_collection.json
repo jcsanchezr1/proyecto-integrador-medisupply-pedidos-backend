@@ -485,8 +485,9 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"const clientIdSinPedidos = Math.floor(Math.random() * 1000) + 10000;",
-							"pm.environment.set(\"client_id_sin_pedidos\", \"550e8400-e29b-41d4-a716-446655440000\");",
+							"// Generar un UUID aleatorio que muy probablemente no tenga pedidos",
+							"const clientIdSinPedidos = 'aaaaaaaa-bbbb-cccc-dddd-' + Math.floor(Math.random() * 1000000000000);",
+							"pm.environment.set(\"client_id_sin_pedidos\", clientIdSinPedidos);",
 							"console.log('Cliente ID sin pedidos generado:', clientIdSinPedidos);"
 						],
 						"type": "text/javascript",
@@ -979,9 +980,6 @@
 							"        }",
 							"    }",
 							"});",
-							"        }",
-							"    }",
-							"});",
 							"console.log('Estructura de items validada correctamente');"
 						],
 						"type": "text/javascript",
@@ -1016,12 +1014,712 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Crear Producto de Prueba 1",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Generar datos dinámicos para el producto",
+							"const randomSku = 'MED-' + Math.floor(Math.random() * 9000 + 1000);",
+							"const randomName = 'Producto de Prueba ' + Math.floor(Math.random() * 1000);",
+							"const randomLocation = String.fromCharCode(65 + Math.floor(Math.random() * 26)) + '-' + ",
+							"    String(Math.floor(Math.random() * 99) + 1).padStart(2, '0') + '-' + ",
+							"    String(Math.floor(Math.random() * 99) + 1).padStart(2, '0');",
+							"const tipos = ['Alto valor', 'Seguridad', 'Cadena fría'];",
+							"const randomTipo = tipos[Math.floor(Math.random() * tipos.length)];",
+							"const randomPrice = (Math.random() * 50 + 10).toFixed(2);",
+							"const randomQuantity = Math.floor(Math.random() * 50 + 10);",
+							"",
+							"// Guardar en variables de entorno",
+							"pm.environment.set('test_product_1_sku', randomSku);",
+							"pm.environment.set('test_product_1_name', randomName);",
+							"pm.environment.set('test_product_1_location', randomLocation);",
+							"pm.environment.set('test_product_1_tipo', randomTipo);",
+							"pm.environment.set('test_product_1_price', randomPrice);",
+							"pm.environment.set('test_product_1_quantity', randomQuantity);",
+							"",
+							"console.log('Producto 1 generado:', randomSku, randomName, randomLocation, randomTipo);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 201', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"pm.test('Response is JSON', function () {",
+							"    pm.response.to.be.json;",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"    pm.expect(response.success).to.be.true;",
+							"});",
+							"pm.test('Product has required fields', function () {",
+							"    const response = pm.response.json();",
+							"    const product = response.data;",
+							"    pm.expect(product).to.have.property('id');",
+							"    pm.expect(product).to.have.property('sku');",
+							"    pm.expect(product).to.have.property('name');",
+							"    pm.expect(product).to.have.property('quantity');",
+							"    pm.expect(product).to.have.property('price');",
+							"    pm.expect(product).to.have.property('location');",
+							"    pm.expect(product).to.have.property('product_type');",
+							"});",
+							"pm.test('Product ID is saved for later use', function () {",
+							"    const response = pm.response.json();",
+							"    const productId = response.data.id;",
+							"    pm.environment.set('test_product_1_id', productId);",
+							"    pm.expect(productId).to.be.a('number');",
+							"    pm.expect(productId).to.be.above(0);",
+							"});",
+							"console.log('Producto 1 creado exitosamente con ID:', pm.environment.get('test_product_1_id'));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"sku\": \"{{test_product_1_sku}}\",\n    \"name\": \"{{test_product_1_name}}\",\n    \"description\": \"Producto de prueba para pedidos\",\n    \"expiration_date\": \"2025-12-31\",\n    \"quantity\": {{test_product_1_quantity}},\n    \"price\": {{test_product_1_price}},\n    \"location\": \"{{test_product_1_location}}\",\n    \"product_type\": \"{{test_product_1_tipo}}\",\n    \"provider_id\": \"6df72291-03ca-4e68-832e-d069e906c85c\"\n}"
+				},
+				"url": {
+					"raw": "{{url_local_inventario}}/inventory/products",
+					"host": [
+						"{{url_local_inventario}}"
+					],
+					"path": [
+						"inventory",
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Producto de Prueba 2",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Generar datos dinámicos para el producto",
+							"const randomSku = 'MED-' + Math.floor(Math.random() * 9000 + 1000);",
+							"const randomName = 'Producto de Prueba ' + Math.floor(Math.random() * 1000);",
+							"const randomLocation = String.fromCharCode(65 + Math.floor(Math.random() * 26)) + '-' + ",
+							"    String(Math.floor(Math.random() * 99) + 1).padStart(2, '0') + '-' + ",
+							"    String(Math.floor(Math.random() * 99) + 1).padStart(2, '0');",
+							"const tipos = ['Alto valor', 'Seguridad', 'Cadena fría'];",
+							"const randomTipo = tipos[Math.floor(Math.random() * tipos.length)];",
+							"const randomPrice = (Math.random() * 50 + 10).toFixed(2);",
+							"const randomQuantity = Math.floor(Math.random() * 30 + 5);",
+							"",
+							"// Guardar en variables de entorno",
+							"pm.environment.set('test_product_2_sku', randomSku);",
+							"pm.environment.set('test_product_2_name', randomName);",
+							"pm.environment.set('test_product_2_location', randomLocation);",
+							"pm.environment.set('test_product_2_tipo', randomTipo);",
+							"pm.environment.set('test_product_2_price', randomPrice);",
+							"pm.environment.set('test_product_2_quantity', randomQuantity);",
+							"",
+							"console.log('Producto 2 generado:', randomSku, randomName, randomLocation, randomTipo);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 201', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"pm.test('Response is JSON', function () {",
+							"    pm.response.to.be.json;",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"    pm.expect(response.success).to.be.true;",
+							"});",
+							"pm.test('Product ID is saved for later use', function () {",
+							"    const response = pm.response.json();",
+							"    const productId = response.data.id;",
+							"    pm.environment.set('test_product_2_id', productId);",
+							"    pm.expect(productId).to.be.a('number');",
+							"    pm.expect(productId).to.be.above(0);",
+							"});",
+							"console.log('Producto 2 creado exitosamente con ID:', pm.environment.get('test_product_2_id'));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"sku\": \"{{test_product_2_sku}}\",\n    \"name\": \"{{test_product_2_name}}\",\n    \"description\": \"Producto de prueba para pedidos\",\n    \"expiration_date\": \"2025-12-31\",\n    \"quantity\": {{test_product_2_quantity}},\n    \"price\": {{test_product_2_price}},\n    \"location\": \"{{test_product_2_location}}\",\n    \"product_type\": \"{{test_product_2_tipo}}\",\n    \"provider_id\": \"6df72291-03ca-4e68-832e-d069e906c85c\"\n}"
+				},
+				"url": {
+					"raw": "{{url_local_inventario}}/inventory/products",
+					"host": [
+						"{{url_local_inventario}}"
+					],
+					"path": [
+						"inventory",
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Pedido - Éxito (Un Producto)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Generar datos dinámicos para el pedido",
+							"const randomClientId = '123e4567-e89b-12d3-a456-42661417400' + Math.floor(Math.random() * 10);",
+							"const randomTotalAmount = (Math.random() * 100 + 50).toFixed(2);",
+							"const futureDate = new Date();",
+							"futureDate.setDate(futureDate.getDate() + Math.floor(Math.random() * 30 + 1));",
+							"const scheduledDeliveryDate = futureDate.toISOString();",
+							"const randomQuantity = Math.floor(Math.random() * 5 + 1);",
+							"",
+							"// Guardar en variables de entorno",
+							"pm.environment.set('test_order_client_id', randomClientId);",
+							"pm.environment.set('test_order_total_amount', randomTotalAmount);",
+							"pm.environment.set('test_order_delivery_date', scheduledDeliveryDate);",
+							"pm.environment.set('test_order_quantity', randomQuantity);",
+							"",
+							"console.log('Pedido generado:', randomClientId, randomTotalAmount, scheduledDeliveryDate);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 201', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"pm.test('Response is JSON', function () {",
+							"    pm.response.to.be.json;",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"    pm.expect(response.success).to.be.true;",
+							"});",
+							"pm.test('Order has required fields', function () {",
+							"    const response = pm.response.json();",
+							"    const order = response.data;",
+							"    pm.expect(order).to.have.property('id');",
+							"    pm.expect(order).to.have.property('order_number');",
+							"    pm.expect(order).to.have.property('client_id');",
+							"    pm.expect(order).to.have.property('status');",
+							"    pm.expect(order).to.have.property('total_amount');",
+							"    pm.expect(order).to.have.property('scheduled_delivery_date');",
+							"    pm.expect(order).to.have.property('assigned_truck');",
+							"});",
+							"pm.test('Order number format is correct', function () {",
+							"    const response = pm.response.json();",
+							"    const order = response.data;",
+							"    pm.expect(order.order_number).to.match(/^PED-\\d{8}-\\d{5}$/);",
+							"});",
+							"pm.test('Order status is correct', function () {",
+							"    const response = pm.response.json();",
+							"    const order = response.data;",
+							"    pm.expect(order.status).to.eql('En Preparación');",
+							"});",
+							"pm.test('Order ID is saved for later use', function () {",
+							"    const response = pm.response.json();",
+							"    const orderId = response.data.id;",
+							"    pm.environment.set('test_order_id', orderId);",
+							"    pm.expect(orderId).to.be.a('number');",
+							"    pm.expect(orderId).to.be.above(0);",
+							"});",
+							"console.log('Pedido creado exitosamente con ID:', pm.environment.get('test_order_id'));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"client_id\": \"{{test_order_client_id}}\",\n    \"total_amount\": {{test_order_total_amount}},\n    \"scheduled_delivery_date\": \"{{test_order_delivery_date}}\",\n    \"items\": [\n        {\n            \"product_id\": {{test_product_1_id}},\n            \"quantity\": {{test_order_quantity}}\n        }\n    ]\n}"
+				},
+				"url": {
+					"raw": "{{url_local_pedidos}}/orders/create",
+					"host": [
+						"{{url_local_pedidos}}"
+					],
+					"path": [
+						"orders",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Pedido - Éxito (Múltiples Productos)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Generar datos dinámicos para el pedido",
+							"const randomClientId = '123e4567-e89b-12d3-a456-42661417400' + Math.floor(Math.random() * 10);",
+							"const randomTotalAmount = (Math.random() * 200 + 100).toFixed(2);",
+							"const futureDate = new Date();",
+							"futureDate.setDate(futureDate.getDate() + Math.floor(Math.random() * 30 + 1));",
+							"const scheduledDeliveryDate = futureDate.toISOString();",
+							"const randomQuantity1 = Math.floor(Math.random() * 3 + 1);",
+							"const randomQuantity2 = Math.floor(Math.random() * 3 + 1);",
+							"",
+							"// Guardar en variables de entorno",
+							"pm.environment.set('test_order_multi_client_id', randomClientId);",
+							"pm.environment.set('test_order_multi_total_amount', randomTotalAmount);",
+							"pm.environment.set('test_order_multi_delivery_date', scheduledDeliveryDate);",
+							"pm.environment.set('test_order_multi_quantity1', randomQuantity1);",
+							"pm.environment.set('test_order_multi_quantity2', randomQuantity2);",
+							"",
+							"console.log('Pedido múltiple generado:', randomClientId, randomTotalAmount, scheduledDeliveryDate);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 201', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"pm.test('Response is JSON', function () {",
+							"    pm.response.to.be.json;",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"    pm.expect(response.success).to.be.true;",
+							"});",
+							"pm.test('Order has required fields', function () {",
+							"    const response = pm.response.json();",
+							"    const order = response.data;",
+							"    pm.expect(order).to.have.property('id');",
+							"    pm.expect(order).to.have.property('order_number');",
+							"    pm.expect(order).to.have.property('client_id');",
+							"    pm.expect(order).to.have.property('status');",
+							"    pm.expect(order).to.have.property('total_amount');",
+							"    pm.expect(order).to.have.property('scheduled_delivery_date');",
+							"    pm.expect(order).to.have.property('assigned_truck');",
+							"});",
+							"pm.test('Order status is correct', function () {",
+							"    const response = pm.response.json();",
+							"    const order = response.data;",
+							"    pm.expect(order.status).to.eql('En Preparación');",
+							"});",
+							"pm.test('Order ID is saved for later use', function () {",
+							"    const response = pm.response.json();",
+							"    const orderId = response.data.id;",
+							"    pm.environment.set('test_order_multi_id', orderId);",
+							"    pm.expect(orderId).to.be.a('number');",
+							"    pm.expect(orderId).to.be.above(0);",
+							"});",
+							"console.log('Pedido múltiple creado exitosamente con ID:', pm.environment.get('test_order_multi_id'));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"client_id\": \"{{test_order_multi_client_id}}\",\n    \"total_amount\": {{test_order_multi_total_amount}},\n    \"scheduled_delivery_date\": \"{{test_order_multi_delivery_date}}\",\n    \"items\": [\n        {\n            \"product_id\": {{test_product_1_id}},\n            \"quantity\": {{test_order_multi_quantity1}}\n        },\n        {\n            \"product_id\": {{test_product_2_id}},\n            \"quantity\": {{test_order_multi_quantity2}}\n        }\n    ]\n}"
+				},
+				"url": {
+					"raw": "{{url_local_pedidos}}/orders/create",
+					"host": [
+						"{{url_local_pedidos}}"
+					],
+					"path": [
+						"orders",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Pedido - Error Stock Insuficiente",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Generar datos dinámicos para el pedido con stock insuficiente",
+							"const randomClientId = '123e4567-e89b-12d3-a456-42661417400' + Math.floor(Math.random() * 10);",
+							"const randomTotalAmount = (Math.random() * 100 + 50).toFixed(2);",
+							"const futureDate = new Date();",
+							"futureDate.setDate(futureDate.getDate() + Math.floor(Math.random() * 30 + 1));",
+							"const scheduledDeliveryDate = futureDate.toISOString();",
+							"const excessiveQuantity = 999; // Cantidad excesiva para causar error",
+							"",
+							"// Guardar en variables de entorno",
+							"pm.environment.set('test_order_error_client_id', randomClientId);",
+							"pm.environment.set('test_order_error_total_amount', randomTotalAmount);",
+							"pm.environment.set('test_order_error_delivery_date', scheduledDeliveryDate);",
+							"pm.environment.set('test_order_error_quantity', excessiveQuantity);",
+							"",
+							"console.log('Pedido con error generado:', randomClientId, randomTotalAmount, scheduledDeliveryDate);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 422', function () {",
+							"    pm.response.to.have.status(422);",
+							"});",
+							"pm.test('Response is JSON', function () {",
+							"    pm.response.to.be.json;",
+							"});",
+							"pm.test('Response has error structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('error');",
+							"    pm.expect(response).to.have.property('details');",
+							"    pm.expect(response.success).to.be.false;",
+							"});",
+							"pm.test('Error message contains stock insufficient', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.details).to.include('Stock insuficiente');",
+							"});",
+							"console.log('Error de stock insuficiente validado correctamente');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"client_id\": \"{{test_order_error_client_id}}\",\n    \"total_amount\": {{test_order_error_total_amount}},\n    \"scheduled_delivery_date\": \"{{test_order_error_delivery_date}}\",\n    \"items\": [\n        {\n            \"product_id\": {{test_product_1_id}},\n            \"quantity\": {{test_order_error_quantity}}\n        }\n    ]\n}"
+				},
+				"url": {
+					"raw": "{{url_local_pedidos}}/orders/create",
+					"host": [
+						"{{url_local_pedidos}}"
+					],
+					"path": [
+						"orders",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Pedido - Error Sin JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 422', function () {",
+							"    pm.response.to.have.status(422);",
+							"});",
+							"pm.test('Response is JSON', function () {",
+							"    pm.response.to.be.json;",
+							"});",
+							"pm.test('Response has error structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('error');",
+							"    pm.expect(response).to.have.property('details');",
+							"    pm.expect(response.success).to.be.false;",
+							"});",
+							"pm.test('Error message about missing JSON', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.details).to.include('Se requiere un cuerpo JSON');",
+							"});",
+							"console.log('Error de JSON faltante validado correctamente');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url_local_pedidos}}/orders/create",
+					"host": [
+						"{{url_local_pedidos}}"
+					],
+					"path": [
+						"orders",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Verificar Stock Después de Pedidos",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response is JSON', function () {",
+							"    pm.response.to.be.json;",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"    pm.expect(response.success).to.be.true;",
+							"});",
+							"pm.test('Product stock was updated', function () {",
+							"    const response = pm.response.json();",
+							"    const product = response.data;",
+							"    pm.expect(product).to.have.property('quantity');",
+							"    pm.expect(product.quantity).to.be.a('number');",
+							"    pm.expect(product.quantity).to.be.at.least(0);",
+							"});",
+							"console.log('Stock verificado después de pedidos:', pm.response.json().data.quantity);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_inventario}}/inventory/products/{{test_product_1_id}}",
+					"host": [
+						"{{url_local_inventario}}"
+					],
+					"path": [
+						"inventory",
+						"products",
+						"{{test_product_1_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Limpiar Productos de Prueba",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response is JSON', function () {",
+							"    pm.response.to.be.json;",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response.success).to.be.true;",
+							"});",
+							"console.log('Producto 1 eliminado exitosamente');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_inventario}}/inventory/products/{{test_product_1_id}}",
+					"host": [
+						"{{url_local_inventario}}"
+					],
+					"path": [
+						"inventory",
+						"products",
+						"{{test_product_1_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Limpiar Producto 2 de Prueba",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response is JSON', function () {",
+							"    pm.response.to.be.json;",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response.success).to.be.true;",
+							"});",
+							"console.log('Producto 2 eliminado exitosamente');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_inventario}}/inventory/products/{{test_product_2_id}}",
+					"host": [
+						"{{url_local_inventario}}"
+					],
+					"path": [
+						"inventory",
+						"products",
+						"{{test_product_2_id}}"
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"variable": [
 		{
 			"key": "url_local_pedidos",
-			"value": "http://localhost:8085",
+			"value": "http://localhost:8082",
+			"type": "string"
+		},
+		{
+			"key": "url_local_inventario",
+			"value": "http://localhost:8082",
 			"type": "string"
 		}
 	]

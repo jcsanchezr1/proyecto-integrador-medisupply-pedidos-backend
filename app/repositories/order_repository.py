@@ -56,6 +56,7 @@ class OrderRepository(BaseRepository):
                 client_id=order.client_id,
                 vendor_id=order.vendor_id,
                 status=order.status,
+                total_amount=order.total_amount,
                 scheduled_delivery_date=order.scheduled_delivery_date,
                 assigned_truck=order.assigned_truck
             )
@@ -88,6 +89,7 @@ class OrderRepository(BaseRepository):
             db_order.client_id = order.client_id
             db_order.vendor_id = order.vendor_id
             db_order.status = order.status
+            db_order.total_amount = order.total_amount
             db_order.scheduled_delivery_date = order.scheduled_delivery_date
             db_order.assigned_truck = order.assigned_truck
             
@@ -135,6 +137,7 @@ class OrderRepository(BaseRepository):
             client_id=db_order.client_id,
             vendor_id=db_order.vendor_id,
             status=db_order.status.value if hasattr(db_order.status, 'value') else str(db_order.status),
+            total_amount=db_order.total_amount,
             scheduled_delivery_date=db_order.scheduled_delivery_date,
             assigned_truck=db_order.assigned_truck,
             created_at=db_order.created_at,
@@ -151,10 +154,7 @@ class OrderRepository(BaseRepository):
             item = OrderItem(
                 id=db_item.id,
                 product_id=db_item.product_id,
-                product_name=None,  # TODO: Consultar del servicio de inventarios
-                product_image_url=None,  # TODO: Consultar del servicio de inventarios
                 quantity=db_item.quantity,
-                unit_price=None,  # TODO: Consultar del servicio de inventarios
                 order_id=db_item.order_id
             )
             order.items.append(item)

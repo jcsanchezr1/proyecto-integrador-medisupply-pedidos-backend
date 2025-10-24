@@ -62,6 +62,56 @@ proyecto-integrador-medisupply-pedidos-backend/
   - **Respuesta**: `"pong"`
 
 ### Gestión de Pedidos
+- `POST /orders/create` - Crea un nuevo pedido
+  - **Cuerpo de la petición**:
+    ```json
+    {
+      "client_id": "123e4567-e89b-12d3-a456-426614174000",
+      "total_amount": 150.50,
+      "scheduled_delivery_date": "2025-12-25T10:00:00Z",
+      "items": [
+        {
+          "product_id": 1,
+          "quantity": 2
+        },
+        {
+          "product_id": 2,
+          "quantity": 1
+        }
+      ]
+    }
+    ```
+  - **Validaciones**:
+    - Debe proporcionar al menos `client_id` O `vendor_id`
+    - `total_amount` debe ser un número mayor a 0
+    - `scheduled_delivery_date` debe tener formato ISO 8601 válido y no ser una fecha pasada
+    - `items` debe ser un array con al menos un item
+    - Cada item debe tener `product_id` y `quantity` válidos
+    - Verifica stock suficiente en el servicio de inventarios
+  - **Respuesta exitosa** (201):
+    ```json
+    {
+      "success": true,
+      "message": "Pedido creado exitosamente",
+      "data": {
+        "id": 1,
+        "order_number": "PED-20251022-12345",
+        "client_id": "123e4567-e89b-12d3-a456-426614174000",
+        "vendor_id": null,
+        "status": "En Preparación",
+        "total_amount": 150.50,
+        "scheduled_delivery_date": "2025-12-25T10:00:00Z",
+        "assigned_truck": "CAM-001",
+        "created_at": "2025-10-22T08:00:00",
+        "updated_at": "2025-10-22T08:00:00",
+        "items": []
+      }
+    }
+    ```
+  - **Errores comunes**:
+    - **400**: Campos obligatorios faltantes, formato de fecha inválido, fecha pasada
+    - **422**: Stock insuficiente para algún producto
+
 - `GET /orders?client_id={uuid}` - Obtiene pedidos por ID de cliente
 - `GET /orders?vendor_id={uuid}` - Obtiene pedidos por ID de vendedor
   - **Parámetros**: 
@@ -135,11 +185,12 @@ El servicio utiliza PostgreSQL como base de datos. Las tablas se crean automáti
 |-------|------|-------------|
 | `id` | INTEGER (PK) | Identificador único del pedido |
 | `order_number` | VARCHAR(20) | Número de pedido (formato: PED-YYYYMMDD-XXXXX) |
-| `client_id` | INTEGER | ID del cliente (opcional) |
-| `vendor_id` | INTEGER | ID del vendedor (opcional) |
-| `status` | VARCHAR(20) | Estado del pedido (Recibido, En Preparación, En Tránsito, Entregado, Devuelto) |
+| `client_id` | VARCHAR(36) | UUID del cliente (opcional) |
+| `vendor_id` | VARCHAR(36) | UUID del vendedor (opcional) |
+| `status` | VARCHAR(50) | Estado del pedido (En Preparación, En Tránsito, Entregado, Devuelto) |
+| `total_amount` | FLOAT | Monto total del pedido |
 | `scheduled_delivery_date` | TIMESTAMP | Fecha programada de entrega |
-| `assigned_truck` | VARCHAR(50) | Camión asignado para la entrega |
+| `assigned_truck` | VARCHAR(20) | Camión asignado para la entrega (CAM-001, CAM-002, etc.) |
 | `created_at` | TIMESTAMP | Fecha de creación del pedido |
 | `updated_at` | TIMESTAMP | Fecha de última actualización |
 
