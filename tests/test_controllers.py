@@ -120,6 +120,56 @@ class TestOrderDeleteAllController:
                     assert hasattr(controller, 'error_response')
                     assert callable(controller.success_response)
                     assert callable(controller.error_response)
+    
+    def test_delete_all_returns_false(self):
+        """Test: DELETE all cuando retorna False (líneas 110-115)"""
+        with patch('app.config.database.SessionLocal') as mock_session_local:
+            mock_session = MagicMock()
+            mock_session_local.return_value = mock_session
+            
+            with patch('app.controllers.order_controller.OrderRepository') as mock_repo_class:
+                with patch('app.controllers.order_controller.OrderService') as mock_service_class:
+                    mock_repo = MagicMock()
+                    mock_repo_class.return_value = mock_repo
+                    
+                    mock_service = MagicMock()
+                    mock_service.delete_all_orders.return_value = False
+                    mock_service_class.return_value = mock_service
+                    
+                    controller = OrderDeleteAllController()
+                    
+                    with patch.object(controller, 'order_service', mock_service):
+                        response, status_code = controller.delete()
+                        
+                        assert status_code == 500
+                        assert response["success"] is False
+                        assert "Error al eliminar pedidos" in response["error"]
+                        assert "No se pudieron eliminar todos los pedidos" in response["details"]
+    
+    def test_delete_all_general_exception(self):
+        """Test: DELETE all con excepción general (líneas 123-124)"""
+        with patch('app.config.database.SessionLocal') as mock_session_local:
+            mock_session = MagicMock()
+            mock_session_local.return_value = mock_session
+            
+            with patch('app.controllers.order_controller.OrderRepository') as mock_repo_class:
+                with patch('app.controllers.order_controller.OrderService') as mock_service_class:
+                    mock_repo = MagicMock()
+                    mock_repo_class.return_value = mock_repo
+                    
+                    mock_service = MagicMock()
+                    mock_service.delete_all_orders.side_effect = Exception("Error inesperado")
+                    mock_service_class.return_value = mock_service
+                    
+                    controller = OrderDeleteAllController()
+                    
+                    with patch.object(controller, 'order_service', mock_service):
+                        response, status_code = controller.delete()
+                        
+                        assert status_code == 500
+                        assert response["success"] is False
+                        assert "Error interno del servidor" in response["error"]
+                        assert "Error inesperado" in response["details"]
 
 
 class TestBaseController:
