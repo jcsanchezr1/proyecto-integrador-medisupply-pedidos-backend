@@ -33,6 +33,7 @@ def configure_routes(app):
     from .controllers.health_controller import HealthCheckView
     from .controllers.order_controller import OrderController, OrderDeleteAllController
     from .controllers.order_create_controller import OrderCreateController
+    from .controllers.order_truck_controller import OrderTruckController
     
     api = Api(app)
     
@@ -43,3 +44,4 @@ def configure_routes(app):
     api.add_resource(OrderCreateController, '/orders/create')
     api.add_resource(OrderController, '/orders')
     api.add_resource(OrderDeleteAllController, '/orders/delete-all')
+    api.add_resource(OrderTruckController, '/orders/by-truck')
