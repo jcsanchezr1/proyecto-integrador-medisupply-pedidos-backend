@@ -2,7 +2,7 @@
 Tests para mejorar coverage del OrderService
 """
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 from datetime import datetime, timedelta
 from app.services.order_service import OrderService
 from app.repositories.order_repository import OrderRepository
@@ -272,3 +272,43 @@ class TestOrderServiceCoverage:
             order_service.create_order(order_data)
         
         assert str(exc_info.value) == "Error inesperado al crear pedido: Error de base de datos"
+    
+    def test_get_orders_by_truck_and_date_success(self, order_service, mock_order_repository):
+        """Test: Obtener pedidos por camión y fecha exitosamente"""
+        from datetime import date
+        from app.models.order import Order
+        
+        mock_order = Mock()
+        mock_order.order_number = 'PED-001'
+        mock_order.items = []
+        mock_order.to_dict.return_value = {'id': 1, 'order_number': 'PED-001'}
+        
+        mock_order_repository.get_orders_by_truck_and_date.return_value = [mock_order]
+        
+        orders = order_service.get_orders_by_truck_and_date('CAM-001', '2025-12-25')
+        
+        assert len(orders) == 1
+        mock_order_repository.get_orders_by_truck_and_date.assert_called_once_with('CAM-001', '2025-12-25')
+    
+    def test_get_orders_by_truck_and_date_missing_truck(self, order_service):
+        """Test: Error cuando falta assigned_truck"""
+        with pytest.raises(OrderValidationError) as exc_info:
+            order_service.get_orders_by_truck_and_date('', '2025-12-25')
+        
+        assert "assigned_truck es obligatorio" in str(exc_info.value)
+    
+    def test_get_orders_by_truck_and_date_missing_date(self, order_service):
+        """Test: Error cuando falta scheduled_delivery_date"""
+        with pytest.raises(OrderValidationError) as exc_info:
+            order_service.get_orders_by_truck_and_date('CAM-001', None)
+        
+        assert "scheduled_delivery_date es obligatoria" in str(exc_info.value)
+    
+    def test_get_orders_by_truck_and_date_repository_error(self, order_service, mock_order_repository):
+        """Test: Error en repositorio"""
+        mock_order_repository.get_orders_by_truck_and_date.side_effect = Exception("Error de BD")
+        
+        with pytest.raises(OrderBusinessLogicError) as exc_info:
+            order_service.get_orders_by_truck_and_date('CAM-001', '2025-12-25')
+        
+        assert "Error al obtener pedidos por camión y fecha" in str(exc_info.value)

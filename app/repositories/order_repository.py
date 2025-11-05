@@ -48,6 +48,29 @@ class OrderRepository(BaseRepository):
         except SQLAlchemyError as e:
             raise Exception(f"Error al obtener pedidos del vendedor: {str(e)}")
     
+    def get_orders_by_truck_and_date(self, assigned_truck: str = None, scheduled_delivery_date = None) -> List[Order]:
+        """Obtiene pedidos por camión y fecha de entrega (parámetros opcionales)"""
+        try:
+            from datetime import date as date_type
+            from sqlalchemy import func
+            
+            query = self.session.query(OrderDB)
+            
+            if assigned_truck:
+                query = query.filter(OrderDB.assigned_truck == assigned_truck)
+            
+            if scheduled_delivery_date:
+                if isinstance(scheduled_delivery_date, str):
+                    from datetime import datetime
+                    scheduled_delivery_date = datetime.fromisoformat(scheduled_delivery_date.replace('Z', '+00:00')).date()
+                query = query.filter(func.date(OrderDB.scheduled_delivery_date) == scheduled_delivery_date)
+            
+            db_orders = query.all()
+            
+            return [self._db_to_model_with_items(db_order) for db_order in db_orders]
+        except SQLAlchemyError as e:
+            raise Exception(f"Error al obtener pedidos por camión y fecha: {str(e)}")
+    
     def create(self, order: Order) -> Order:
         """Crea un nuevo pedido con sus items"""
         try:
