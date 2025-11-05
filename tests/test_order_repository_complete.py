@@ -413,10 +413,52 @@ class TestOrderRepositoryWorkingFinal:
             assigned_truck="CAM-001"
         )
         
-        from app.models.db_models import OrderDB
-        mock_order_db_class = MockObj(spec=OrderDB)
-        mock_order_db_class.assigned_truck = MockObj()
-        mock_order_db_class.scheduled_delivery_date = MockObj()
+        mock_query = MagicMock()
+        mock_query.all.return_value = [sample_order_db]
+        def mock_filter(*args, **kwargs):
+            return mock_query
+        mock_query.filter = mock_filter
+        mock_session.query = MagicMock(return_value=mock_query)
+        
+        with patch.object(order_repository, '_db_to_model_with_items', return_value=mock_order_model):
+            with patch('app.repositories.order_repository.OrderDB') as mock_order_db_class:
+                mock_order_db_class.assigned_truck = MagicMock()
+                mock_order_db_class.scheduled_delivery_date = MagicMock()
+                result = order_repository.get_orders_by_truck_and_date('CAM-001', date(2025, 12, 25))
+                
+                assert len(result) == 1
+                assert result[0] == mock_order_model
+                mock_session.query.assert_called_once()
+                order_repository._db_to_model_with_items.assert_called_once_with(sample_order_db)
+    
+    def test_get_orders_by_truck_and_date_missing_truck(self, order_repository, mock_session):
+        """Test: Obtener pedidos solo por fecha (assigned_truck es opcional)"""
+        from datetime import date
+        from app.models.order import Order
+        from datetime import datetime
+        
+        sample_order_db = MagicMock()
+        sample_order_db.assigned_truck = "CAM-001"
+        sample_order_db.scheduled_delivery_date = datetime(2025, 12, 25, 10, 0, 0)
+        sample_order_db.items = []
+        sample_order_db.id = 1
+        sample_order_db.order_number = "PED-001"
+        sample_order_db.client_id = "550e8400-e29b-41d4-a716-446655440001"
+        sample_order_db.vendor_id = None
+        sample_order_db.status = "Recibido"
+        sample_order_db.total_amount = 100.0
+        sample_order_db.created_at = datetime.now()
+        sample_order_db.updated_at = datetime.now()
+        
+        mock_order_model = Order(
+            id=1,
+            order_number="PED-001",
+            client_id="550e8400-e29b-41d4-a716-446655440001",
+            status="Recibido",
+            total_amount=100.0,
+            scheduled_delivery_date=datetime(2025, 12, 25, 10, 0, 0),
+            assigned_truck="CAM-001"
+        )
         
         mock_query = MagicMock()
         mock_filter = MagicMock()
@@ -425,25 +467,54 @@ class TestOrderRepositoryWorkingFinal:
         mock_session.query.return_value = mock_query
         
         with patch.object(order_repository, '_db_to_model_with_items', return_value=mock_order_model):
-            with patch('app.repositories.order_repository.OrderDB', mock_order_db_class):
-                result = order_repository.get_orders_by_truck_and_date('CAM-001', date(2025, 12, 25))
+            with patch('app.repositories.order_repository.OrderDB') as mock_order_db_class:
+                mock_order_db_class.scheduled_delivery_date = MagicMock()
+                result = order_repository.get_orders_by_truck_and_date(None, date(2025, 12, 25))
                 
                 assert len(result) == 1
                 mock_session.query.assert_called_once()
     
-    def test_get_orders_by_truck_and_date_missing_truck(self, order_repository, mock_session):
-        """Test: Error cuando falta assigned_truck"""
-        with pytest.raises(Exception) as exc_info:
-            order_repository.get_orders_by_truck_and_date('', '2025-12-25')
-        
-        assert "assigned_truck es obligatorio" in str(exc_info.value)
-    
     def test_get_orders_by_truck_and_date_missing_date(self, order_repository, mock_session):
-        """Test: Error cuando falta scheduled_delivery_date"""
-        with pytest.raises(Exception) as exc_info:
-            order_repository.get_orders_by_truck_and_date('CAM-001', None)
+        """Test: Obtener pedidos solo por camión (scheduled_delivery_date es opcional)"""
+        from datetime import datetime
+        from app.models.order import Order
         
-        assert "scheduled_delivery_date es obligatoria" in str(exc_info.value)
+        sample_order_db = MagicMock()
+        sample_order_db.assigned_truck = "CAM-001"
+        sample_order_db.scheduled_delivery_date = datetime(2025, 12, 25, 10, 0, 0)
+        sample_order_db.items = []
+        sample_order_db.id = 1
+        sample_order_db.order_number = "PED-001"
+        sample_order_db.client_id = "550e8400-e29b-41d4-a716-446655440001"
+        sample_order_db.vendor_id = None
+        sample_order_db.status = "Recibido"
+        sample_order_db.total_amount = 100.0
+        sample_order_db.created_at = datetime.now()
+        sample_order_db.updated_at = datetime.now()
+        
+        mock_order_model = Order(
+            id=1,
+            order_number="PED-001",
+            client_id="550e8400-e29b-41d4-a716-446655440001",
+            status="Recibido",
+            total_amount=100.0,
+            scheduled_delivery_date=datetime(2025, 12, 25, 10, 0, 0),
+            assigned_truck="CAM-001"
+        )
+        
+        mock_query = MagicMock()
+        mock_filter = MagicMock()
+        mock_filter.all.return_value = [sample_order_db]
+        mock_query.filter.return_value = mock_filter
+        mock_session.query.return_value = mock_query
+        
+        with patch.object(order_repository, '_db_to_model_with_items', return_value=mock_order_model):
+            with patch('app.repositories.order_repository.OrderDB') as mock_order_db_class:
+                mock_order_db_class.assigned_truck = MagicMock()
+                result = order_repository.get_orders_by_truck_and_date('CAM-001', None)
+                
+                assert len(result) == 1
+                mock_session.query.assert_called_once()
     
     def test_get_orders_by_truck_and_date_database_error(self, order_repository, mock_session):
         """Test: Error de base de datos"""

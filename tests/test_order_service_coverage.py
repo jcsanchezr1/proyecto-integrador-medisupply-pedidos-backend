@@ -290,19 +290,52 @@ class TestOrderServiceCoverage:
         assert len(orders) == 1
         mock_order_repository.get_orders_by_truck_and_date.assert_called_once_with('CAM-001', '2025-12-25')
     
-    def test_get_orders_by_truck_and_date_missing_truck(self, order_service):
-        """Test: Error cuando falta assigned_truck"""
-        with pytest.raises(OrderValidationError) as exc_info:
-            order_service.get_orders_by_truck_and_date('', '2025-12-25')
+    def test_get_orders_by_truck_and_date_missing_truck(self, order_service, mock_order_repository):
+        """Test: Obtener pedidos solo por fecha (assigned_truck es opcional)"""
+        from datetime import date
+        from app.models.order import Order
+        from datetime import datetime
         
-        assert "assigned_truck es obligatorio" in str(exc_info.value)
+        mock_order = Order(
+            id=1,
+            order_number="PED-001",
+            client_id="550e8400-e29b-41d4-a716-446655440001",
+            status="Recibido",
+            total_amount=100.0,
+            scheduled_delivery_date=datetime(2025, 12, 25, 10, 0, 0),
+            assigned_truck="CAM-001"
+        )
+        mock_order.items = []
+        
+        mock_order_repository.get_orders_by_truck_and_date.return_value = [mock_order]
+        
+        orders = order_service.get_orders_by_truck_and_date(None, date(2025, 12, 25))
+        
+        assert len(orders) == 1
+        mock_order_repository.get_orders_by_truck_and_date.assert_called_once_with(None, date(2025, 12, 25))
     
-    def test_get_orders_by_truck_and_date_missing_date(self, order_service):
-        """Test: Error cuando falta scheduled_delivery_date"""
-        with pytest.raises(OrderValidationError) as exc_info:
-            order_service.get_orders_by_truck_and_date('CAM-001', None)
+    def test_get_orders_by_truck_and_date_missing_date(self, order_service, mock_order_repository):
+        """Test: Obtener pedidos solo por camión (scheduled_delivery_date es opcional)"""
+        from app.models.order import Order
+        from datetime import datetime
         
-        assert "scheduled_delivery_date es obligatoria" in str(exc_info.value)
+        mock_order = Order(
+            id=1,
+            order_number="PED-001",
+            client_id="550e8400-e29b-41d4-a716-446655440001",
+            status="Recibido",
+            total_amount=100.0,
+            scheduled_delivery_date=datetime(2025, 12, 25, 10, 0, 0),
+            assigned_truck="CAM-001"
+        )
+        mock_order.items = []
+        
+        mock_order_repository.get_orders_by_truck_and_date.return_value = [mock_order]
+        
+        orders = order_service.get_orders_by_truck_and_date('CAM-001', None)
+        
+        assert len(orders) == 1
+        mock_order_repository.get_orders_by_truck_and_date.assert_called_once_with('CAM-001', None)
     
     def test_get_orders_by_truck_and_date_repository_error(self, order_service, mock_order_repository):
         """Test: Error en repositorio"""

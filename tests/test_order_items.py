@@ -95,3 +95,48 @@ class TestOrderItem:
         
         with pytest.raises(ValueError, match="La cantidad debe ser mayor a 0"):
             order_item.validate()
+    
+    def test_validate_unit_price_valid(self):
+        """Test: Validar unit_price válido"""
+        order_item = OrderItem(
+            product_id=123,
+            quantity=5
+        )
+        order_item.unit_price = 10.5
+        order_item.validate()
+        
+        assert order_item.unit_price == 10.5
+    
+    def test_validate_unit_price_negative(self):
+        """Test: Validar unit_price negativo"""
+        order_item = OrderItem(
+            product_id=123,
+            quantity=5
+        )
+        order_item.unit_price = -10.0
+        
+        with pytest.raises(ValueError, match="El precio unitario no puede ser negativo"):
+            order_item.validate()
+    
+    def test_get_total_price_with_unit_price(self):
+        """Test: Calcular precio total con unit_price"""
+        order_item = OrderItem(
+            product_id=123,
+            quantity=5
+        )
+        order_item.unit_price = 10.0
+        
+        total = order_item.get_total_price()
+        
+        assert total == 50.0
+    
+    def test_get_total_price_without_unit_price(self):
+        """Test: Calcular precio total sin unit_price"""
+        order_item = OrderItem(
+            product_id=123,
+            quantity=5
+        )
+        
+        total = order_item.get_total_price()
+        
+        assert total is None

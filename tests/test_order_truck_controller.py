@@ -16,28 +16,48 @@ class TestOrderTruckController:
             mock_session = MagicMock()
             mock_session_local.return_value = mock_session
             
-            controller = OrderTruckController()
-            
-            with self.app.test_request_context('/orders/by-truck?scheduled_delivery_date=2025-12-25'):
-                from flask import request
-                response, status_code = controller.get()
-                
-                assert status_code == 400
-                assert 'assigned_truck' in response['error'].lower() or 'obligatorio' in response['details'].lower()
+            with patch('app.repositories.order_repository.OrderRepository') as mock_repo_class:
+                with patch('app.services.order_service.OrderService') as mock_service_class:
+                    mock_repo = MagicMock()
+                    mock_repo_class.return_value = mock_repo
+                    
+                    mock_service = MagicMock()
+                    mock_service.get_orders_by_truck_and_date.return_value = []
+                    mock_service_class.return_value = mock_service
+                    
+                    controller = OrderTruckController()
+                    
+                    with self.app.test_request_context('/orders/by-truck?scheduled_delivery_date=2025-12-25'):
+                        from flask import request
+                        response, status_code = controller.get()
+                        
+                        assert status_code == 200
+                        assert response['success'] is True
+                        assert 'fecha' in response['message'].lower()
     
     def test_get_missing_scheduled_delivery_date(self):
         with patch('app.config.database.SessionLocal') as mock_session_local:
             mock_session = MagicMock()
             mock_session_local.return_value = mock_session
             
-            controller = OrderTruckController()
-            
-            with self.app.test_request_context('/orders/by-truck?assigned_truck=CAM-001'):
-                from flask import request
-                response, status_code = controller.get()
-                
-                assert status_code == 400
-                assert 'scheduled_delivery_date' in response['error'].lower() or 'obligatorio' in response['details'].lower()
+            with patch('app.repositories.order_repository.OrderRepository') as mock_repo_class:
+                with patch('app.services.order_service.OrderService') as mock_service_class:
+                    mock_repo = MagicMock()
+                    mock_repo_class.return_value = mock_repo
+                    
+                    mock_service = MagicMock()
+                    mock_service.get_orders_by_truck_and_date.return_value = []
+                    mock_service_class.return_value = mock_service
+                    
+                    controller = OrderTruckController()
+                    
+                    with self.app.test_request_context('/orders/by-truck?assigned_truck=CAM-001'):
+                        from flask import request
+                        response, status_code = controller.get()
+                        
+                        assert status_code == 200
+                        assert response['success'] is True
+                        assert 'camión' in response['message'].lower()
     
     def test_get_success_with_orders(self):
         with patch('app.config.database.SessionLocal') as mock_session_local:

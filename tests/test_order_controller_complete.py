@@ -230,3 +230,38 @@ class TestOrderControllerFinal:
                     assert response["success"] is False
                     assert "Error interno del servidor" in response["error"]
                     assert "Error general" in response["details"]
+    
+    def test_get_with_invalid_client_id_uuid(self):
+        """Test: GET con client_id UUID inválido (líneas 45-46)"""
+        with patch('app.config.database.SessionLocal') as mock_session_local:
+            mock_session = MagicMock()
+            mock_session_local.return_value = mock_session
+            
+            controller = OrderController()
+            
+            with self.app.test_request_context('/orders?client_id=invalid-uuid'):
+                from flask import request
+                response, status_code = controller.get()
+                
+                assert status_code == 400
+                assert response["success"] is False
+                assert "Error de validación" in response["error"]
+                assert "UUID válido" in response["details"]
+    
+    def test_get_with_invalid_vendor_id_uuid(self):
+        """Test: GET con vendor_id UUID inválido (líneas 55-56)"""
+        with patch('app.config.database.SessionLocal') as mock_session_local:
+            mock_session = MagicMock()
+            mock_session_local.return_value = mock_session
+            
+            controller = OrderController()
+            
+            with self.app.test_request_context('/orders?vendor_id=invalid-uuid'):
+                from flask import request
+                response, status_code = controller.get()
+                
+                assert status_code == 400
+                assert response["success"] is False
+                assert "Error de validación" in response["error"]
+                assert "UUID válido" in response["details"]
+    
