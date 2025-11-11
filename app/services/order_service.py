@@ -209,3 +209,99 @@ class OrderService:
             raise
         except Exception as e:
             raise OrderBusinessLogicError(f"Error inesperado al crear pedido: {str(e)}")
+    
+    def get_monthly_report(self) -> dict:
+        """
+        Obtiene el reporte mensual consolidado de pedidos del último año
+        
+        Returns:
+            dict: Estructura optimizada para gráficos en Angular con:
+                - period: rango de fechas del reporte
+                - summary: resumen total (pedidos, monto, meses con datos)
+                - monthly_data: array con datos de cada mes
+        """
+        try:
+            from datetime import datetime, timedelta
+            from dateutil.relativedelta import relativedelta
+            import calendar
+
+            # Fecha actual (hoy)
+            end_date = datetime.now()
+            # Hace 1 año desde hoy (para la consulta SQL)
+            start_date = end_date - timedelta(days=365)
+            
+            logger.info(f"Generando reporte mensual desde {start_date.date()} hasta {end_date.date()}")
+
+            monthly_raw_data = self.order_repository.get_monthly_summary(start_date, end_date)
+
+            data_by_month = {}
+            for item in monthly_raw_data:
+                key = f"{item['year']}-{item['month']}"
+                data_by_month[key] = item
+
+            monthly_data = []
+            # Comenzar desde hace 11 meses (para incluir el mes actual en el total de 12)
+            current_date = end_date.replace(day=1)  # Primer día del mes actual
+            current_date = current_date - relativedelta(months=11)  # Retroceder 11 meses
+
+            month_names = {
+                1: "enero", 2: "febrero", 3: "marzo", 4: "abril",
+                5: "mayo", 6: "junio", 7: "julio", 8: "agosto",
+                9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre"
+            }
+            month_names_short = {
+                1: "ene", 2: "feb", 3: "mar", 4: "abr",
+                5: "may", 6: "jun", 7: "jul", 8: "ago",
+                9: "sep", 10: "oct", 11: "nov", 12: "dic"
+            }
+            
+            for i in range(12):
+                year = current_date.year
+                month = current_date.month
+                key = f"{year}-{month}"
+
+                month_data = data_by_month.get(key, {
+                    'year': year,
+                    'month': month,
+                    'orders_count': 0,
+                    'total_amount': 0.0
+                })
+
+                monthly_data.append({
+                    'year': year,
+                    'month': month,
+                    'month_name': month_names[month],
+                    'month_short': month_names_short[month],
+                    'label': f"{month_names_short[month]}-{year}",
+                    'orders_count': month_data['orders_count'],
+                    'total_amount': month_data['total_amount']
+                })
+
+                if month == 12:
+                    current_date = current_date.replace(year=year+1, month=1)
+                else:
+                    current_date = current_date.replace(month=month+1)
+
+            total_orders = sum(m['orders_count'] for m in monthly_data)
+            total_amount = sum(m['total_amount'] for m in monthly_data)
+            months_with_data = sum(1 for m in monthly_data if m['orders_count'] > 0)
+
+            return {
+                'period': {
+                    'start_date': start_date.date().isoformat(),
+                    'end_date': end_date.date().isoformat(),
+                    'months': 12
+                },
+                'summary': {
+                    'total_orders': total_orders,
+                    'total_amount': round(total_amount, 2),
+                    'months_with_data': months_with_data,
+                    'average_orders_per_month': round(total_orders / 12, 2),
+                    'average_amount_per_month': round(total_amount / 12, 2)
+                },
+                'monthly_data': monthly_data
+            }
+            
+        except Exception as e:
+            logger.error(f"Error al generar reporte mensual: {str(e)}")
+            raise OrderBusinessLogicError(f"Error al generar reporte mensual: {str(e)}")

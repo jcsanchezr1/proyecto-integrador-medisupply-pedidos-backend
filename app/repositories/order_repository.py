@@ -164,6 +164,50 @@ class OrderRepository(BaseRepository):
             self.session.rollback()
             raise Exception(f"Error al eliminar todos los pedidos: {str(e)}")
     
+    def get_monthly_summary(self, start_date, end_date) -> List[dict]:
+        """
+        Obtiene un resumen de pedidos agrupados por mes en un rango de fechas
+        
+        Args:
+            start_date: Fecha inicial del rango
+            end_date: Fecha final del rango
+            
+        Returns:
+            Lista de diccionarios con año, mes, cantidad de pedidos y monto total
+        """
+        try:
+            from sqlalchemy import func, extract
+            
+            # Consultar pedidos agrupados por año y mes
+            results = self.session.query(
+                extract('year', OrderDB.created_at).label('year'),
+                extract('month', OrderDB.created_at).label('month'),
+                func.count(OrderDB.id).label('orders_count'),
+                func.sum(OrderDB.total_amount).label('total_amount')
+            ).filter(
+                OrderDB.created_at >= start_date,
+                OrderDB.created_at <= end_date
+            ).group_by(
+                extract('year', OrderDB.created_at),
+                extract('month', OrderDB.created_at)
+            ).order_by(
+                extract('year', OrderDB.created_at),
+                extract('month', OrderDB.created_at)
+            ).all()
+            
+            monthly_data = []
+            for result in results:
+                monthly_data.append({
+                    'year': int(result.year),
+                    'month': int(result.month),
+                    'orders_count': result.orders_count or 0,
+                    'total_amount': float(result.total_amount or 0)
+                })
+            
+            return monthly_data
+        except SQLAlchemyError as e:
+            raise Exception(f"Error al obtener resumen mensual de pedidos: {str(e)}")
+    
     def _db_to_model(self, db_order: OrderDB) -> Order:
         """Convierte modelo de BD a modelo de dominio"""
         order = Order(
