@@ -34,7 +34,7 @@ def configure_routes(app):
     from .controllers.order_controller import OrderController, OrderDeleteAllController
     from .controllers.order_create_controller import OrderCreateController
     from .controllers.order_truck_controller import OrderTruckController
-    from .controllers.order_report_controller import OrderMonthlyReportController
+    from .controllers.order_report_controller import OrderMonthlyReportController, OrderTopClientsController
     
     api = Api(app)
     
@@ -49,3 +49,4 @@ def configure_routes(app):
     
     # Report endpoints
     api.add_resource(OrderMonthlyReportController, '/orders/reports/monthly')
+    api.add_resource(OrderTopClientsController, '/orders/reports/top-clients')

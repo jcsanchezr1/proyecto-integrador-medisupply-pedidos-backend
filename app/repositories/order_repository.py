@@ -208,6 +208,45 @@ class OrderRepository(BaseRepository):
         except SQLAlchemyError as e:
             raise Exception(f"Error al obtener resumen mensual de pedidos: {str(e)}")
     
+    def get_top_clients_last_quarter(self, start_date, end_date, limit: int = 5) -> List[dict]:
+        """
+        Obtiene los clientes con más pedidos en un rango de fechas
+        
+        Args:
+            start_date: Fecha inicial del rango
+            end_date: Fecha final del rango
+            limit: Número máximo de clientes a retornar (default: 5)
+            
+        Returns:
+            Lista de diccionarios con client_id y orders_count
+        """
+        try:
+            from sqlalchemy import func
+
+            results = self.session.query(
+                OrderDB.client_id.label('client_id'),
+                func.count(OrderDB.id).label('orders_count')
+            ).filter(
+                OrderDB.created_at >= start_date,
+                OrderDB.created_at <= end_date,
+                OrderDB.client_id.isnot(None)
+            ).group_by(
+                OrderDB.client_id
+            ).order_by(
+                func.count(OrderDB.id).desc()
+            ).limit(limit).all()
+            
+            top_clients = []
+            for result in results:
+                top_clients.append({
+                    'client_id': result.client_id,
+                    'orders_count': result.orders_count or 0
+                })
+            
+            return top_clients
+        except SQLAlchemyError as e:
+            raise Exception(f"Error al obtener top clientes: {str(e)}")
+    
     def _db_to_model(self, db_order: OrderDB) -> Order:
         """Convierte modelo de BD a modelo de dominio"""
         order = Order(

@@ -52,4 +52,43 @@ class OrderMonthlyReportController(BaseController):
             return self.error_response("Error interno del servidor", str(e), 500)
 
 
+class OrderTopClientsController(BaseController):
+    """Controlador para reporte de top clientes"""
+    
+    def __init__(self):
+        from ..config.database import SessionLocal
+        session = SessionLocal()
+        self.order_repository = OrderRepository(session)
+        self.order_service = OrderService(self.order_repository)
+    
+    @auto_close_session
+    def get(self):
+        """
+        Obtiene los top 5 clientes con más pedidos en el último trimestre
+        
+        Returns:
+            JSON con:
+                - period: rango de fechas del trimestre
+                - top_clients: lista con client_id, orders_count y client_name
+        """
+        try:
+            report_data = self.order_service.get_top_clients_report()
+            
+            if not report_data['top_clients']:
+                return self.success_response(
+                    data=report_data,
+                    message="No hay clientes con pedidos en el último trimestre"
+                )
+            
+            return self.success_response(
+                data=report_data,
+                message="Reporte de top clientes generado exitosamente"
+            )
+            
+        except OrderValidationError as e:
+            return self.error_response("Error de validación", str(e), 400)
+        except OrderBusinessLogicError as e:
+            return self.error_response("Error de lógica de negocio", str(e), 500)
+        except Exception as e:
+            return self.error_response("Error interno del servidor", str(e), 500)
 

@@ -11,6 +11,8 @@ from ..repositories.order_repository import OrderRepository
 from ..exceptions.custom_exceptions import OrderNotFoundError, OrderValidationError, OrderBusinessLogicError
 from .inventory_service import InventoryService
 from ..integrations.inventory_integration import InventoryIntegration
+from .auth_service import AuthService
+from ..integrations.auth_integration import AuthIntegration
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +25,11 @@ class OrderService:
         self.order_repository = order_repository
         self.inventory_service = InventoryService()
         self.inventory_integration = InventoryIntegration(self.inventory_service)
+        self.auth_service = AuthService()
+        self.auth_integration = AuthIntegration(self.auth_service)
     
     def get_orders_by_client(self, client_id: str) -> List[Order]:
         """Obtiene pedidos por ID de cliente"""
-        # Validar entrada al inicio
         if not client_id:
             raise OrderValidationError("El ID del cliente es obligatorio")
         
@@ -42,7 +45,6 @@ class OrderService:
     
     def get_orders_by_vendor(self, vendor_id: str) -> List[Order]:
         """Obtiene pedidos por ID de vendedor"""
-        # Validar entrada al inicio
         if not vendor_id:
             raise OrderValidationError("El ID del vendedor es obligatorio")
         
@@ -82,7 +84,7 @@ class OrderService:
         """Elimina todos los pedidos"""
         try:
             count = self.order_repository.delete_all()
-            return count >= 0  # Retorna True si se eliminó al menos 0 pedidos (incluso si no había pedidos)
+            return count >= 0
         except Exception as e:
             raise OrderBusinessLogicError(f"Error al eliminar todos los pedidos: {str(e)}")
     
@@ -225,9 +227,7 @@ class OrderService:
             from dateutil.relativedelta import relativedelta
             import calendar
 
-            # Fecha actual (hoy)
             end_date = datetime.now()
-            # Hace 1 año desde hoy (para la consulta SQL)
             start_date = end_date - timedelta(days=365)
             
             logger.info(f"Generando reporte mensual desde {start_date.date()} hasta {end_date.date()}")
@@ -240,9 +240,8 @@ class OrderService:
                 data_by_month[key] = item
 
             monthly_data = []
-            # Comenzar desde hace 11 meses (para incluir el mes actual en el total de 12)
-            current_date = end_date.replace(day=1)  # Primer día del mes actual
-            current_date = current_date - relativedelta(months=11)  # Retroceder 11 meses
+            current_date = end_date.replace(day=1)
+            current_date = current_date - relativedelta(months=11)
 
             month_names = {
                 1: "enero", 2: "febrero", 3: "marzo", 4: "abril",
@@ -305,3 +304,48 @@ class OrderService:
         except Exception as e:
             logger.error(f"Error al generar reporte mensual: {str(e)}")
             raise OrderBusinessLogicError(f"Error al generar reporte mensual: {str(e)}")
+    
+    def get_top_clients_report(self) -> dict:
+        """
+        Obtiene el reporte de los top 5 clientes con más pedidos en el último trimestre
+        
+        Returns:
+            Diccionario con:
+                - period: rango de fechas del trimestre
+                - top_clients: lista con client_id, orders_count y client_name
+        """
+        try:
+            from datetime import datetime, timedelta
+            from dateutil.relativedelta import relativedelta
+
+            end_date = datetime.now()
+            start_date = end_date - relativedelta(months=3)
+            
+            logger.info(f"Generando reporte de top clientes desde {start_date.date()} hasta {end_date.date()}")
+
+            top_clients_data = self.order_repository.get_top_clients_last_quarter(start_date, end_date, limit=5)
+
+            client_ids = [client['client_id'] for client in top_clients_data if client.get('client_id')]
+            client_names = self.auth_integration.get_client_names(client_ids)
+
+            top_clients = []
+            for client_data in top_clients_data:
+                client_id = client_data['client_id']
+                top_clients.append({
+                    'client_id': client_id,
+                    'orders_count': client_data['orders_count'],
+                    'client_name': client_names.get(client_id, 'Cliente no disponible')
+                })
+            
+            return {
+                'period': {
+                    'start_date': start_date.date().isoformat(),
+                    'end_date': end_date.date().isoformat(),
+                    'months': 3
+                },
+                'top_clients': top_clients
+            }
+            
+        except Exception as e:
+            logger.error(f"Error al generar reporte de top clientes: {str(e)}")
+            raise OrderBusinessLogicError(f"Error al generar reporte de top clientes: {str(e)}")
