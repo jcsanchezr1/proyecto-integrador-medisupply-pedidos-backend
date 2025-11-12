@@ -11,6 +11,8 @@ from ..repositories.order_repository import OrderRepository
 from ..exceptions.custom_exceptions import OrderNotFoundError, OrderValidationError, OrderBusinessLogicError
 from .inventory_service import InventoryService
 from ..integrations.inventory_integration import InventoryIntegration
+from .auth_service import AuthService
+from ..integrations.auth_integration import AuthIntegration
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +25,11 @@ class OrderService:
         self.order_repository = order_repository
         self.inventory_service = InventoryService()
         self.inventory_integration = InventoryIntegration(self.inventory_service)
+        self.auth_service = AuthService()
+        self.auth_integration = AuthIntegration(self.auth_service)
     
     def get_orders_by_client(self, client_id: str) -> List[Order]:
         """Obtiene pedidos por ID de cliente"""
-        # Validar entrada al inicio
         if not client_id:
             raise OrderValidationError("El ID del cliente es obligatorio")
         
@@ -42,7 +45,6 @@ class OrderService:
     
     def get_orders_by_vendor(self, vendor_id: str) -> List[Order]:
         """Obtiene pedidos por ID de vendedor"""
-        # Validar entrada al inicio
         if not vendor_id:
             raise OrderValidationError("El ID del vendedor es obligatorio")
         
@@ -82,7 +84,7 @@ class OrderService:
         """Elimina todos los pedidos"""
         try:
             count = self.order_repository.delete_all()
-            return count >= 0  # Retorna True si se eliminó al menos 0 pedidos (incluso si no había pedidos)
+            return count >= 0
         except Exception as e:
             raise OrderBusinessLogicError(f"Error al eliminar todos los pedidos: {str(e)}")
     
@@ -209,3 +211,172 @@ class OrderService:
             raise
         except Exception as e:
             raise OrderBusinessLogicError(f"Error inesperado al crear pedido: {str(e)}")
+    
+    def get_monthly_report(self) -> dict:
+        """
+        Obtiene el reporte mensual consolidado de pedidos del último año
+        
+        Returns:
+            dict: Estructura optimizada para gráficos en Angular con:
+                - period: rango de fechas del reporte
+                - summary: resumen total (pedidos, monto, meses con datos)
+                - monthly_data: array con datos de cada mes
+        """
+        try:
+            from datetime import datetime, timedelta
+            from dateutil.relativedelta import relativedelta
+            import calendar
+
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=365)
+            
+            logger.info(f"Generando reporte mensual desde {start_date.date()} hasta {end_date.date()}")
+
+            monthly_raw_data = self.order_repository.get_monthly_summary(start_date, end_date)
+
+            data_by_month = {}
+            for item in monthly_raw_data:
+                key = f"{item['year']}-{item['month']}"
+                data_by_month[key] = item
+
+            monthly_data = []
+            current_date = end_date.replace(day=1)
+            current_date = current_date - relativedelta(months=11)
+
+            month_names = {
+                1: "enero", 2: "febrero", 3: "marzo", 4: "abril",
+                5: "mayo", 6: "junio", 7: "julio", 8: "agosto",
+                9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre"
+            }
+            month_names_short = {
+                1: "ene", 2: "feb", 3: "mar", 4: "abr",
+                5: "may", 6: "jun", 7: "jul", 8: "ago",
+                9: "sep", 10: "oct", 11: "nov", 12: "dic"
+            }
+            
+            for i in range(12):
+                year = current_date.year
+                month = current_date.month
+                key = f"{year}-{month}"
+
+                month_data = data_by_month.get(key, {
+                    'year': year,
+                    'month': month,
+                    'orders_count': 0,
+                    'total_amount': 0.0
+                })
+
+                monthly_data.append({
+                    'year': year,
+                    'month': month,
+                    'month_name': month_names[month],
+                    'month_short': month_names_short[month],
+                    'label': f"{month_names_short[month]}-{year}",
+                    'orders_count': month_data['orders_count'],
+                    'total_amount': month_data['total_amount']
+                })
+
+                if month == 12:
+                    current_date = current_date.replace(year=year+1, month=1)
+                else:
+                    current_date = current_date.replace(month=month+1)
+
+            total_orders = sum(m['orders_count'] for m in monthly_data)
+            total_amount = sum(m['total_amount'] for m in monthly_data)
+            months_with_data = sum(1 for m in monthly_data if m['orders_count'] > 0)
+
+            return {
+                'period': {
+                    'start_date': start_date.date().isoformat(),
+                    'end_date': end_date.date().isoformat(),
+                    'months': 12
+                },
+                'summary': {
+                    'total_orders': total_orders,
+                    'total_amount': round(total_amount, 2),
+                    'months_with_data': months_with_data,
+                    'average_orders_per_month': round(total_orders / 12, 2),
+                    'average_amount_per_month': round(total_amount / 12, 2)
+                },
+                'monthly_data': monthly_data
+            }
+            
+        except Exception as e:
+            logger.error(f"Error al generar reporte mensual: {str(e)}")
+            raise OrderBusinessLogicError(f"Error al generar reporte mensual: {str(e)}")
+    
+    def get_top_clients_report(self) -> dict:
+        """
+        Obtiene el reporte de los top 5 clientes con más pedidos en el último trimestre
+        
+        Returns:
+            Diccionario con:
+                - period: rango de fechas del trimestre
+                - top_clients: lista con client_id, orders_count y client_name
+        """
+        try:
+            from datetime import datetime, timedelta
+            from dateutil.relativedelta import relativedelta
+
+            end_date = datetime.now()
+            start_date = end_date - relativedelta(months=3)
+            
+            logger.info(f"Generando reporte de top clientes desde {start_date.date()} hasta {end_date.date()}")
+
+            top_clients_data = self.order_repository.get_top_clients_last_quarter(start_date, end_date, limit=5)
+
+            client_ids = [client['client_id'] for client in top_clients_data if client.get('client_id')]
+            client_names = self.auth_integration.get_client_names(client_ids)
+
+            top_clients = []
+            for client_data in top_clients_data:
+                client_id = client_data['client_id']
+                top_clients.append({
+                    'client_id': client_id,
+                    'orders_count': client_data['orders_count'],
+                    'client_name': client_names.get(client_id, 'Cliente no disponible')
+                })
+            
+            return {
+                'period': {
+                    'start_date': start_date.date().isoformat(),
+                    'end_date': end_date.date().isoformat(),
+                    'months': 3
+                },
+                'top_clients': top_clients
+            }
+            
+        except Exception as e:
+            logger.error(f"Error al generar reporte de top clientes: {str(e)}")
+            raise OrderBusinessLogicError(f"Error al generar reporte de top clientes: {str(e)}")
+    
+    def get_top_products_report(self) -> dict:
+        """
+        Obtiene el reporte de los top 10 productos más vendidos
+        
+        Returns:
+            Diccionario con:
+                - top_products: lista con product_id, total_sold y product_name
+        """
+        try:
+            top_products_data = self.order_repository.get_top_products_sold(limit=10)
+            
+            product_ids = [product['product_id'] for product in top_products_data if product.get('product_id')]
+            product_names = self.inventory_integration.get_product_names(product_ids)
+            
+            top_products = []
+            for product_data in top_products_data:
+                product_id = product_data['product_id']
+                top_products.append({
+                    'product_id': product_id,
+                    'total_sold': product_data['total_sold'],
+                    'product_name': product_names.get(product_id, 'Producto no disponible')
+                })
+            
+            return {
+                'top_products': top_products
+            }
+            
+        except Exception as e:
+            logger.error(f"Error al generar reporte de top productos: {str(e)}")
+            raise OrderBusinessLogicError(f"Error al generar reporte de top productos: {str(e)}")

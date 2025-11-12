@@ -164,6 +164,122 @@ class OrderRepository(BaseRepository):
             self.session.rollback()
             raise Exception(f"Error al eliminar todos los pedidos: {str(e)}")
     
+    def get_monthly_summary(self, start_date, end_date) -> List[dict]:
+        """
+        Obtiene un resumen de pedidos agrupados por mes en un rango de fechas
+        
+        Args:
+            start_date: Fecha inicial del rango
+            end_date: Fecha final del rango
+            
+        Returns:
+            Lista de diccionarios con año, mes, cantidad de pedidos y monto total
+        """
+        try:
+            from sqlalchemy import func, extract
+            
+            # Consultar pedidos agrupados por año y mes
+            results = self.session.query(
+                extract('year', OrderDB.created_at).label('year'),
+                extract('month', OrderDB.created_at).label('month'),
+                func.count(OrderDB.id).label('orders_count'),
+                func.sum(OrderDB.total_amount).label('total_amount')
+            ).filter(
+                OrderDB.created_at >= start_date,
+                OrderDB.created_at <= end_date
+            ).group_by(
+                extract('year', OrderDB.created_at),
+                extract('month', OrderDB.created_at)
+            ).order_by(
+                extract('year', OrderDB.created_at),
+                extract('month', OrderDB.created_at)
+            ).all()
+            
+            monthly_data = []
+            for result in results:
+                monthly_data.append({
+                    'year': int(result.year),
+                    'month': int(result.month),
+                    'orders_count': result.orders_count or 0,
+                    'total_amount': float(result.total_amount or 0)
+                })
+            
+            return monthly_data
+        except SQLAlchemyError as e:
+            raise Exception(f"Error al obtener resumen mensual de pedidos: {str(e)}")
+    
+    def get_top_clients_last_quarter(self, start_date, end_date, limit: int = 5) -> List[dict]:
+        """
+        Obtiene los clientes con más pedidos en un rango de fechas
+        
+        Args:
+            start_date: Fecha inicial del rango
+            end_date: Fecha final del rango
+            limit: Número máximo de clientes a retornar (default: 5)
+            
+        Returns:
+            Lista de diccionarios con client_id y orders_count
+        """
+        try:
+            from sqlalchemy import func
+
+            results = self.session.query(
+                OrderDB.client_id.label('client_id'),
+                func.count(OrderDB.id).label('orders_count')
+            ).filter(
+                OrderDB.created_at >= start_date,
+                OrderDB.created_at <= end_date,
+                OrderDB.client_id.isnot(None)
+            ).group_by(
+                OrderDB.client_id
+            ).order_by(
+                func.count(OrderDB.id).desc()
+            ).limit(limit).all()
+            
+            top_clients = []
+            for result in results:
+                top_clients.append({
+                    'client_id': result.client_id,
+                    'orders_count': result.orders_count or 0
+                })
+            
+            return top_clients
+        except SQLAlchemyError as e:
+            raise Exception(f"Error al obtener top clientes: {str(e)}")
+    
+    def get_top_products_sold(self, limit: int = 10) -> List[dict]:
+        """
+        Obtiene los productos más vendidos
+        
+        Args:
+            limit: Número máximo de productos a retornar (default: 10)
+            
+        Returns:
+            Lista de diccionarios con product_id y total_sold (cantidad total vendida)
+        """
+        try:
+            from sqlalchemy import func
+            
+            results = self.session.query(
+                OrderItemDB.product_id.label('product_id'),
+                func.sum(OrderItemDB.quantity).label('total_sold')
+            ).group_by(
+                OrderItemDB.product_id
+            ).order_by(
+                func.sum(OrderItemDB.quantity).desc()
+            ).limit(limit).all()
+            
+            top_products = []
+            for result in results:
+                top_products.append({
+                    'product_id': result.product_id,
+                    'total_sold': result.total_sold or 0
+                })
+            
+            return top_products
+        except SQLAlchemyError as e:
+            raise Exception(f"Error al obtener top productos: {str(e)}")
+    
     def _db_to_model(self, db_order: OrderDB) -> Order:
         """Convierte modelo de BD a modelo de dominio"""
         order = Order(

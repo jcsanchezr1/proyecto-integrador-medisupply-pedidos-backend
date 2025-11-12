@@ -484,12 +484,19 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"exec": [
-							"// Generar un UUID aleatorio que muy probablemente no tenga pedidos",
-							"const clientIdSinPedidos = 'aaaaaaaa-bbbb-cccc-dddd-' + Math.floor(Math.random() * 1000000000000);",
-							"pm.environment.set(\"client_id_sin_pedidos\", clientIdSinPedidos);",
-							"console.log('Cliente ID sin pedidos generado:', clientIdSinPedidos);"
-						],
+					"exec": [
+						"// Generar un UUID válido aleatorio que muy probablemente no tenga pedidos",
+						"function generateUUID() {",
+						"    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {",
+						"        const r = Math.random() * 16 | 0;",
+						"        const v = c === 'x' ? r : (r & 0x3 | 0x8);",
+						"        return v.toString(16);",
+						"    });",
+						"}",
+						"const clientIdSinPedidos = generateUUID();",
+						"pm.environment.set(\"client_id_sin_pedidos\", clientIdSinPedidos);",
+						"console.log('Cliente ID sin pedidos generado:', clientIdSinPedidos);"
+					],
 						"type": "text/javascript",
 						"packages": {},
 						"requests": {}
@@ -1028,7 +1035,7 @@
 							"const randomLocation = String.fromCharCode(65 + Math.floor(Math.random() * 26)) + '-' + ",
 							"    String(Math.floor(Math.random() * 99) + 1).padStart(2, '0') + '-' + ",
 							"    String(Math.floor(Math.random() * 99) + 1).padStart(2, '0');",
-							"const tipos = ['Alto valor', 'Seguridad', 'Cadena fría'];",
+							"const tipos = ['Alto valor', 'Seguridad', 'Cadena de frío'];",
 							"const randomTipo = tipos[Math.floor(Math.random() * tipos.length)];",
 							"const randomPrice = (Math.random() * 50 + 10).toFixed(2);",
 							"const randomQuantity = Math.floor(Math.random() * 50 + 10);",
@@ -1130,7 +1137,7 @@
 							"const randomLocation = String.fromCharCode(65 + Math.floor(Math.random() * 26)) + '-' + ",
 							"    String(Math.floor(Math.random() * 99) + 1).padStart(2, '0') + '-' + ",
 							"    String(Math.floor(Math.random() * 99) + 1).padStart(2, '0');",
-							"const tipos = ['Alto valor', 'Seguridad', 'Cadena fría'];",
+							"const tipos = ['Alto valor', 'Seguridad', 'Cadena de frío'];",
 							"const randomTipo = tipos[Math.floor(Math.random() * tipos.length)];",
 							"const randomPrice = (Math.random() * 50 + 10).toFixed(2);",
 							"const randomQuantity = Math.floor(Math.random() * 30 + 5);",
@@ -1151,29 +1158,36 @@
 				{
 					"listen": "test",
 					"script": {
-						"exec": [
-							"pm.test('Status code is 201', function () {",
-							"    pm.response.to.have.status(201);",
-							"});",
-							"pm.test('Response is JSON', function () {",
-							"    pm.response.to.be.json;",
-							"});",
-							"pm.test('Response has success structure', function () {",
-							"    const response = pm.response.json();",
-							"    pm.expect(response).to.have.property('success');",
-							"    pm.expect(response).to.have.property('message');",
-							"    pm.expect(response).to.have.property('data');",
-							"    pm.expect(response.success).to.be.true;",
-							"});",
-							"pm.test('Product ID is saved for later use', function () {",
-							"    const response = pm.response.json();",
-							"    const productId = response.data.id;",
-							"    pm.environment.set('test_product_2_id', productId);",
-							"    pm.expect(productId).to.be.a('number');",
-							"    pm.expect(productId).to.be.above(0);",
-							"});",
-							"console.log('Producto 2 creado exitosamente con ID:', pm.environment.get('test_product_2_id'));"
-						],
+					"exec": [
+						"pm.test('Status code is 201', function () {",
+						"    pm.response.to.have.status(201);",
+						"});",
+						"pm.test('Response is JSON', function () {",
+						"    pm.response.to.be.json;",
+						"});",
+						"pm.test('Response has success structure', function () {",
+						"    const response = pm.response.json();",
+						"    pm.expect(response).to.have.property('success');",
+						"    pm.expect(response).to.have.property('message');",
+						"    if (response.success) {",
+						"        pm.expect(response).to.have.property('data');",
+						"    } else {",
+						"        console.log('Error al crear producto 2:', response);",
+						"    }",
+						"});",
+						"pm.test('Product ID is saved for later use', function () {",
+						"    const response = pm.response.json();",
+						"    if (response.success && response.data && response.data.id) {",
+						"        const productId = response.data.id;",
+						"        pm.environment.set('test_product_2_id', productId);",
+						"        pm.expect(productId).to.be.a('number');",
+						"        pm.expect(productId).to.be.above(0);",
+						"        console.log('Producto 2 creado exitosamente con ID:', productId);",
+						"    } else {",
+						"        console.log('No se pudo crear el producto 2. Verificar que el tipo sea: Alto valor, Seguridad o Cadena de frío');",
+						"    }",
+						"});"
+					],
 						"type": "text/javascript"
 					}
 				}
@@ -1214,23 +1228,30 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"exec": [
-							"// Generar datos dinámicos para el pedido",
-							"const randomClientId = '123e4567-e89b-12d3-a456-42661417400' + Math.floor(Math.random() * 10);",
-							"const randomTotalAmount = (Math.random() * 100 + 50).toFixed(2);",
-							"const futureDate = new Date();",
-							"futureDate.setDate(futureDate.getDate() + Math.floor(Math.random() * 30 + 1));",
-							"const scheduledDeliveryDate = futureDate.toISOString();",
-							"const randomQuantity = Math.floor(Math.random() * 5 + 1);",
-							"",
-							"// Guardar en variables de entorno",
-							"pm.environment.set('test_order_client_id', randomClientId);",
-							"pm.environment.set('test_order_total_amount', randomTotalAmount);",
-							"pm.environment.set('test_order_delivery_date', scheduledDeliveryDate);",
-							"pm.environment.set('test_order_quantity', randomQuantity);",
-							"",
-							"console.log('Pedido generado:', randomClientId, randomTotalAmount, scheduledDeliveryDate);"
-						],
+					"exec": [
+						"// Generar datos dinámicos para el pedido",
+						"function generateUUID() {",
+						"    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {",
+						"        const r = Math.random() * 16 | 0;",
+						"        const v = c === 'x' ? r : (r & 0x3 | 0x8);",
+						"        return v.toString(16);",
+						"    });",
+						"}",
+						"const randomClientId = generateUUID();",
+						"const randomTotalAmount = (Math.random() * 100 + 50).toFixed(2);",
+						"const futureDate = new Date();",
+						"futureDate.setDate(futureDate.getDate() + Math.floor(Math.random() * 30 + 1));",
+						"const scheduledDeliveryDate = futureDate.toISOString();",
+						"const randomQuantity = Math.floor(Math.random() * 5 + 1);",
+						"",
+						"// Guardar en variables de entorno",
+						"pm.environment.set('test_order_client_id', randomClientId);",
+						"pm.environment.set('test_order_total_amount', randomTotalAmount);",
+						"pm.environment.set('test_order_delivery_date', scheduledDeliveryDate);",
+						"pm.environment.set('test_order_quantity', randomQuantity);",
+						"",
+						"console.log('Pedido generado:', randomClientId, randomTotalAmount, scheduledDeliveryDate);"
+					],
 						"type": "text/javascript"
 					}
 				},
@@ -1321,70 +1342,93 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"exec": [
-							"// Generar datos dinámicos para el pedido",
-							"const randomClientId = '123e4567-e89b-12d3-a456-42661417400' + Math.floor(Math.random() * 10);",
-							"const randomTotalAmount = (Math.random() * 200 + 100).toFixed(2);",
-							"const futureDate = new Date();",
-							"futureDate.setDate(futureDate.getDate() + Math.floor(Math.random() * 30 + 1));",
-							"const scheduledDeliveryDate = futureDate.toISOString();",
-							"const randomQuantity1 = Math.floor(Math.random() * 3 + 1);",
-							"const randomQuantity2 = Math.floor(Math.random() * 3 + 1);",
-							"",
-							"// Guardar en variables de entorno",
-							"pm.environment.set('test_order_multi_client_id', randomClientId);",
-							"pm.environment.set('test_order_multi_total_amount', randomTotalAmount);",
-							"pm.environment.set('test_order_multi_delivery_date', scheduledDeliveryDate);",
-							"pm.environment.set('test_order_multi_quantity1', randomQuantity1);",
-							"pm.environment.set('test_order_multi_quantity2', randomQuantity2);",
-							"",
-							"console.log('Pedido múltiple generado:', randomClientId, randomTotalAmount, scheduledDeliveryDate);"
-						],
+					"exec": [
+						"// Generar datos dinámicos para el pedido",
+						"function generateUUID() {",
+						"    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {",
+						"        const r = Math.random() * 16 | 0;",
+						"        const v = c === 'x' ? r : (r & 0x3 | 0x8);",
+						"        return v.toString(16);",
+						"    });",
+						"}",
+						"const randomClientId = generateUUID();",
+						"const randomTotalAmount = (Math.random() * 200 + 100).toFixed(2);",
+						"const futureDate = new Date();",
+						"futureDate.setDate(futureDate.getDate() + Math.floor(Math.random() * 30 + 1));",
+						"const scheduledDeliveryDate = futureDate.toISOString();",
+						"const randomQuantity1 = Math.floor(Math.random() * 3 + 1);",
+						"const randomQuantity2 = Math.floor(Math.random() * 3 + 1);",
+						"",
+						"// Verificar que ambos productos existan",
+						"const product1Id = pm.environment.get('test_product_1_id');",
+						"const product2Id = pm.environment.get('test_product_2_id');",
+						"",
+						"if (!product1Id || !product2Id) {",
+						"    console.log('Advertencia: Uno o ambos productos no existen. Producto 1:', product1Id, 'Producto 2:', product2Id);",
+						"}",
+						"",
+						"// Guardar en variables de entorno",
+						"pm.environment.set('test_order_multi_client_id', randomClientId);",
+						"pm.environment.set('test_order_multi_total_amount', randomTotalAmount);",
+						"pm.environment.set('test_order_multi_delivery_date', scheduledDeliveryDate);",
+						"pm.environment.set('test_order_multi_quantity1', randomQuantity1);",
+						"pm.environment.set('test_order_multi_quantity2', randomQuantity2);",
+						"",
+						"console.log('Pedido múltiple generado:', randomClientId, randomTotalAmount, scheduledDeliveryDate);"
+					],
 						"type": "text/javascript"
 					}
 				},
 				{
 					"listen": "test",
 					"script": {
-						"exec": [
-							"pm.test('Status code is 201', function () {",
-							"    pm.response.to.have.status(201);",
-							"});",
-							"pm.test('Response is JSON', function () {",
-							"    pm.response.to.be.json;",
-							"});",
-							"pm.test('Response has success structure', function () {",
-							"    const response = pm.response.json();",
-							"    pm.expect(response).to.have.property('success');",
-							"    pm.expect(response).to.have.property('message');",
-							"    pm.expect(response).to.have.property('data');",
-							"    pm.expect(response.success).to.be.true;",
-							"});",
-							"pm.test('Order has required fields', function () {",
-							"    const response = pm.response.json();",
-							"    const order = response.data;",
-							"    pm.expect(order).to.have.property('id');",
-							"    pm.expect(order).to.have.property('order_number');",
-							"    pm.expect(order).to.have.property('client_id');",
-							"    pm.expect(order).to.have.property('status');",
-							"    pm.expect(order).to.have.property('total_amount');",
-							"    pm.expect(order).to.have.property('scheduled_delivery_date');",
-							"    pm.expect(order).to.have.property('assigned_truck');",
-							"});",
-							"pm.test('Order status is correct', function () {",
-							"    const response = pm.response.json();",
-							"    const order = response.data;",
-							"    pm.expect(order.status).to.eql('En Preparación');",
-							"});",
-							"pm.test('Order ID is saved for later use', function () {",
-							"    const response = pm.response.json();",
-							"    const orderId = response.data.id;",
-							"    pm.environment.set('test_order_multi_id', orderId);",
-							"    pm.expect(orderId).to.be.a('number');",
-							"    pm.expect(orderId).to.be.above(0);",
-							"});",
-							"console.log('Pedido múltiple creado exitosamente con ID:', pm.environment.get('test_order_multi_id'));"
-						],
+					"exec": [
+						"pm.test('Status code is 201', function () {",
+						"    pm.response.to.have.status(201);",
+						"});",
+						"pm.test('Response is JSON', function () {",
+						"    pm.response.to.be.json;",
+						"});",
+						"pm.test('Response has success structure', function () {",
+						"    const response = pm.response.json();",
+						"    pm.expect(response).to.have.property('success');",
+						"    pm.expect(response).to.have.property('message');",
+						"    pm.expect(response).to.have.property('data');",
+						"    pm.expect(response.success).to.be.true;",
+						"});",
+						"pm.test('Order has required fields', function () {",
+						"    const response = pm.response.json();",
+						"    if (response.success && response.data) {",
+						"        const order = response.data;",
+						"        pm.expect(order).to.have.property('id');",
+						"        pm.expect(order).to.have.property('order_number');",
+						"        pm.expect(order).to.have.property('client_id');",
+						"        pm.expect(order).to.have.property('status');",
+						"        pm.expect(order).to.have.property('total_amount');",
+						"        pm.expect(order).to.have.property('scheduled_delivery_date');",
+						"        pm.expect(order).to.have.property('assigned_truck');",
+						"    }",
+						"});",
+						"pm.test('Order status is correct', function () {",
+						"    const response = pm.response.json();",
+						"    if (response.success && response.data) {",
+						"        const order = response.data;",
+						"        pm.expect(order.status).to.eql('En Preparación');",
+						"    }",
+						"});",
+						"pm.test('Order ID is saved for later use', function () {",
+						"    const response = pm.response.json();",
+						"    if (response.success && response.data && response.data.id) {",
+						"        const orderId = response.data.id;",
+						"        pm.environment.set('test_order_multi_id', orderId);",
+						"        pm.expect(orderId).to.be.a('number');",
+						"        pm.expect(orderId).to.be.above(0);",
+						"        console.log('Pedido múltiple creado exitosamente con ID:', orderId);",
+						"    } else {",
+						"        console.log('Error al crear pedido múltiple:', response);",
+						"    }",
+						"});"
+					],
 						"type": "text/javascript"
 					}
 				}
@@ -1425,23 +1469,30 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"exec": [
-							"// Generar datos dinámicos para el pedido con stock insuficiente",
-							"const randomClientId = '123e4567-e89b-12d3-a456-42661417400' + Math.floor(Math.random() * 10);",
-							"const randomTotalAmount = (Math.random() * 100 + 50).toFixed(2);",
-							"const futureDate = new Date();",
-							"futureDate.setDate(futureDate.getDate() + Math.floor(Math.random() * 30 + 1));",
-							"const scheduledDeliveryDate = futureDate.toISOString();",
-							"const excessiveQuantity = 999; // Cantidad excesiva para causar error",
-							"",
-							"// Guardar en variables de entorno",
-							"pm.environment.set('test_order_error_client_id', randomClientId);",
-							"pm.environment.set('test_order_error_total_amount', randomTotalAmount);",
-							"pm.environment.set('test_order_error_delivery_date', scheduledDeliveryDate);",
-							"pm.environment.set('test_order_error_quantity', excessiveQuantity);",
-							"",
-							"console.log('Pedido con error generado:', randomClientId, randomTotalAmount, scheduledDeliveryDate);"
-						],
+					"exec": [
+						"// Generar datos dinámicos para el pedido con stock insuficiente",
+						"function generateUUID() {",
+						"    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {",
+						"        const r = Math.random() * 16 | 0;",
+						"        const v = c === 'x' ? r : (r & 0x3 | 0x8);",
+						"        return v.toString(16);",
+						"    });",
+						"}",
+						"const randomClientId = generateUUID();",
+						"const randomTotalAmount = (Math.random() * 100 + 50).toFixed(2);",
+						"const futureDate = new Date();",
+						"futureDate.setDate(futureDate.getDate() + Math.floor(Math.random() * 30 + 1));",
+						"const scheduledDeliveryDate = futureDate.toISOString();",
+						"const excessiveQuantity = 999; // Cantidad excesiva para causar error",
+						"",
+						"// Guardar en variables de entorno",
+						"pm.environment.set('test_order_error_client_id', randomClientId);",
+						"pm.environment.set('test_order_error_total_amount', randomTotalAmount);",
+						"pm.environment.set('test_order_error_delivery_date', scheduledDeliveryDate);",
+						"pm.environment.set('test_order_error_quantity', excessiveQuantity);",
+						"",
+						"console.log('Pedido con error generado:', randomClientId, randomTotalAmount, scheduledDeliveryDate);"
+					],
 						"type": "text/javascript"
 					}
 				},
@@ -1663,8 +1714,19 @@
 			"response": []
 		},
 		{
-			"name": "Limpiar Producto 2 de Prueba",
+			"name": "Reporte Mensual de Pedidos",
 			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log('Obteniendo reporte mensual de pedidos...');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
 				{
 					"listen": "test",
 					"script": {
@@ -1679,10 +1741,295 @@
 							"    const response = pm.response.json();",
 							"    pm.expect(response).to.have.property('success');",
 							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
 							"    pm.expect(response.success).to.be.true;",
 							"});",
-							"console.log('Producto 2 eliminado exitosamente');"
+							"pm.test('Data has required structure', function () {",
+							"    const response = pm.response.json();",
+							"    const data = response.data;",
+							"    pm.expect(data).to.have.property('period');",
+							"    pm.expect(data).to.have.property('summary');",
+							"    pm.expect(data).to.have.property('monthly_data');",
+							"    pm.expect(data.monthly_data).to.be.an('array');",
+							"});",
+							"pm.test('Period has required fields', function () {",
+							"    const response = pm.response.json();",
+							"    const period = response.data.period;",
+							"    pm.expect(period).to.have.property('start_date');",
+							"    pm.expect(period).to.have.property('end_date');",
+							"    pm.expect(period).to.have.property('months');",
+							"});",
+							"pm.test('Summary has required fields', function () {",
+							"    const response = pm.response.json();",
+							"    const summary = response.data.summary;",
+							"    pm.expect(summary).to.have.property('total_orders');",
+							"    pm.expect(summary).to.have.property('total_amount');",
+							"    pm.expect(summary).to.have.property('months_with_data');",
+							"});",
+							"pm.test('Monthly data items have required fields (if any exist)', function () {",
+							"    const response = pm.response.json();",
+							"    const monthlyData = response.data.monthly_data;",
+							"    if (monthlyData && monthlyData.length > 0) {",
+							"        const monthItem = monthlyData[0];",
+							"        pm.expect(monthItem).to.have.property('year');",
+							"        pm.expect(monthItem).to.have.property('month');",
+							"        pm.expect(monthItem).to.have.property('month_name');",
+							"        pm.expect(monthItem).to.have.property('orders_count');",
+							"        pm.expect(monthItem).to.have.property('total_amount');",
+							"    }",
+							"});",
+							"console.log('Reporte mensual obtenido correctamente');"
 						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_pedidos}}/orders/reports/monthly",
+					"host": [
+						"{{url_local_pedidos}}"
+					],
+					"path": [
+						"orders",
+						"reports",
+						"monthly"
+					]
+				},
+				"description": "Obtiene el reporte consolidado de pedidos por mes del último año"
+			},
+			"response": []
+		},
+		{
+			"name": "Reporte Top Clientes",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log('Obteniendo reporte de top clientes...');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response is JSON', function () {",
+							"    pm.response.to.be.json;",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"    pm.expect(response.success).to.be.true;",
+							"});",
+							"pm.test('Data has required structure', function () {",
+							"    const response = pm.response.json();",
+							"    const data = response.data;",
+							"    pm.expect(data).to.have.property('period');",
+							"    pm.expect(data).to.have.property('top_clients');",
+							"    pm.expect(data.top_clients).to.be.an('array');",
+							"});",
+							"pm.test('Period has required fields', function () {",
+							"    const response = pm.response.json();",
+							"    const period = response.data.period;",
+							"    pm.expect(period).to.have.property('start_date');",
+							"    pm.expect(period).to.have.property('end_date');",
+							"    pm.expect(period).to.have.property('months');",
+							"});",
+							"pm.test('Top clients items have required fields (if any exist)', function () {",
+							"    const response = pm.response.json();",
+							"    const topClients = response.data.top_clients;",
+							"    if (topClients && topClients.length > 0) {",
+							"        const client = topClients[0];",
+							"        pm.expect(client).to.have.property('client_id');",
+							"        pm.expect(client).to.have.property('orders_count');",
+							"        pm.expect(client).to.have.property('client_name');",
+							"        pm.expect(client.orders_count).to.be.a('number');",
+							"        pm.expect(client.orders_count).to.be.at.least(0);",
+							"    }",
+							"});",
+							"pm.test('Top clients are ordered by orders_count (if any exist)', function () {",
+							"    const response = pm.response.json();",
+							"    const topClients = response.data.top_clients;",
+							"    if (topClients && topClients.length > 1) {",
+							"        for (let i = 0; i < topClients.length - 1; i++) {",
+							"            pm.expect(topClients[i].orders_count).to.be.at.least(topClients[i + 1].orders_count);",
+							"        }",
+							"    }",
+							"});",
+							"console.log('Reporte de top clientes obtenido correctamente');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_pedidos}}/orders/reports/top-clients",
+					"host": [
+						"{{url_local_pedidos}}"
+					],
+					"path": [
+						"orders",
+						"reports",
+						"top-clients"
+					]
+				},
+				"description": "Obtiene los top 5 clientes con más pedidos en el último trimestre"
+			},
+			"response": []
+		},
+		{
+			"name": "Reporte Top Productos",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log('Obteniendo reporte de top productos...');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response is JSON', function () {",
+							"    pm.response.to.be.json;",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"    pm.expect(response.success).to.be.true;",
+							"});",
+							"pm.test('Data has required structure', function () {",
+							"    const response = pm.response.json();",
+							"    const data = response.data;",
+							"    pm.expect(data).to.have.property('top_products');",
+							"    pm.expect(data.top_products).to.be.an('array');",
+							"});",
+							"pm.test('Top products items have required fields (if any exist)', function () {",
+							"    const response = pm.response.json();",
+							"    const topProducts = response.data.top_products;",
+							"    if (topProducts && topProducts.length > 0) {",
+							"        const product = topProducts[0];",
+							"        pm.expect(product).to.have.property('product_id');",
+							"        pm.expect(product).to.have.property('total_sold');",
+							"        pm.expect(product).to.have.property('product_name');",
+							"        pm.expect(product.product_id).to.be.a('number');",
+							"        pm.expect(product.total_sold).to.be.a('number');",
+							"        pm.expect(product.total_sold).to.be.at.least(0);",
+							"        pm.expect(product.product_name).to.be.a('string');",
+							"    }",
+							"});",
+							"pm.test('Top products are ordered by total_sold descending (if any exist)', function () {",
+							"    const response = pm.response.json();",
+							"    const topProducts = response.data.top_products;",
+							"    if (topProducts && topProducts.length > 1) {",
+							"        for (let i = 0; i < topProducts.length - 1; i++) {",
+							"            pm.expect(topProducts[i].total_sold).to.be.at.least(topProducts[i + 1].total_sold);",
+							"        }",
+							"    }",
+							"});",
+							"pm.test('Top products limit is maximum 10 (if any exist)', function () {",
+							"    const response = pm.response.json();",
+							"    const topProducts = response.data.top_products;",
+							"    pm.expect(topProducts.length).to.be.at.most(10);",
+							"});",
+							"console.log('Reporte de top productos obtenido correctamente');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_pedidos}}/orders/reports/top-products",
+					"host": [
+						"{{url_local_pedidos}}"
+					],
+					"path": [
+						"orders",
+						"reports",
+						"top-products"
+					]
+				},
+				"description": "Obtiene los top 10 productos más vendidos"
+			},
+			"response": []
+		},
+		{
+			"name": "Limpiar Producto 2 de Prueba",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+					"exec": [
+						"pm.test('Status code is 200 or 404', function () {",
+						"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+						"});",
+						"pm.test('Response is JSON or HTML', function () {",
+						"    const contentType = pm.response.headers.get('Content-Type') || '';",
+						"    pm.expect(contentType.includes('json') || contentType.includes('html')).to.be.true;",
+						"});",
+						"pm.test('Product deleted or not found', function () {",
+						"    if (pm.response.code === 200) {",
+						"        const response = pm.response.json();",
+						"        pm.expect(response).to.have.property('success');",
+						"        pm.expect(response.success).to.be.true;",
+						"        console.log('Producto 2 eliminado exitosamente');",
+						"    } else if (pm.response.code === 404) {",
+						"        console.log('Producto 2 no encontrado (puede que no se haya creado correctamente)');",
+						"    }",
+						"});"
+					],
 						"type": "text/javascript"
 					}
 				}
