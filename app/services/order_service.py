@@ -349,3 +349,34 @@ class OrderService:
         except Exception as e:
             logger.error(f"Error al generar reporte de top clientes: {str(e)}")
             raise OrderBusinessLogicError(f"Error al generar reporte de top clientes: {str(e)}")
+    
+    def get_top_products_report(self) -> dict:
+        """
+        Obtiene el reporte de los top 10 productos más vendidos
+        
+        Returns:
+            Diccionario con:
+                - top_products: lista con product_id, total_sold y product_name
+        """
+        try:
+            top_products_data = self.order_repository.get_top_products_sold(limit=10)
+            
+            product_ids = [product['product_id'] for product in top_products_data if product.get('product_id')]
+            product_names = self.inventory_integration.get_product_names(product_ids)
+            
+            top_products = []
+            for product_data in top_products_data:
+                product_id = product_data['product_id']
+                top_products.append({
+                    'product_id': product_id,
+                    'total_sold': product_data['total_sold'],
+                    'product_name': product_names.get(product_id, 'Producto no disponible')
+                })
+            
+            return {
+                'top_products': top_products
+            }
+            
+        except Exception as e:
+            logger.error(f"Error al generar reporte de top productos: {str(e)}")
+            raise OrderBusinessLogicError(f"Error al generar reporte de top productos: {str(e)}")

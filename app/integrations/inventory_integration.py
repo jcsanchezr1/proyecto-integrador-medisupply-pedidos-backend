@@ -84,3 +84,23 @@ class InventoryIntegration:
             
             logger.error(f"Compensación completada. Re-lanzando error original: {str(e)}")
             raise e
+    
+    def get_product_names(self, product_ids: List[int]) -> Dict[int, str]:
+        """
+        Obtiene los nombres de múltiples productos por sus IDs
+        
+        Args:
+            product_ids: Lista de IDs de productos
+            
+        Returns:
+            Diccionario {product_id: product_name}
+            Si un producto no se encuentra, se retorna 'Producto no disponible'
+        """
+        logger.info(f"Obteniendo nombres para {len(product_ids)} productos")
+        product_names = {}
+        for product_id in product_ids:
+            if not product_id:
+                continue
+            product_info = self.inventory_service.get_product_by_id(product_id)
+            product_names[product_id] = product_info.get('name', 'Producto no disponible') or 'Producto no disponible'
+        return product_names

@@ -247,6 +247,39 @@ class OrderRepository(BaseRepository):
         except SQLAlchemyError as e:
             raise Exception(f"Error al obtener top clientes: {str(e)}")
     
+    def get_top_products_sold(self, limit: int = 10) -> List[dict]:
+        """
+        Obtiene los productos más vendidos
+        
+        Args:
+            limit: Número máximo de productos a retornar (default: 10)
+            
+        Returns:
+            Lista de diccionarios con product_id y total_sold (cantidad total vendida)
+        """
+        try:
+            from sqlalchemy import func
+            
+            results = self.session.query(
+                OrderItemDB.product_id.label('product_id'),
+                func.sum(OrderItemDB.quantity).label('total_sold')
+            ).group_by(
+                OrderItemDB.product_id
+            ).order_by(
+                func.sum(OrderItemDB.quantity).desc()
+            ).limit(limit).all()
+            
+            top_products = []
+            for result in results:
+                top_products.append({
+                    'product_id': result.product_id,
+                    'total_sold': result.total_sold or 0
+                })
+            
+            return top_products
+        except SQLAlchemyError as e:
+            raise Exception(f"Error al obtener top productos: {str(e)}")
+    
     def _db_to_model(self, db_order: OrderDB) -> Order:
         """Convierte modelo de BD a modelo de dominio"""
         order = Order(
