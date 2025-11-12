@@ -345,3 +345,62 @@ class TestOrderServiceCoverage:
             order_service.get_orders_by_truck_and_date('CAM-001', '2025-12-25')
         
         assert "Error al obtener pedidos por camión y fecha" in str(exc_info.value)
+    
+    def test_get_orders_by_truck_and_date_value_error(self, order_service, mock_order_repository):
+        """Test: Cubrir línea 77 - ValueError en get_orders_by_truck_and_date"""
+        # Arrange
+        mock_order_repository.get_orders_by_truck_and_date.side_effect = ValueError("Invalid truck ID")
+        
+        # Act & Assert
+        with pytest.raises(OrderValidationError) as exc_info:
+            order_service.get_orders_by_truck_and_date("CAM-001", "2025-12-25")
+        
+        assert "Invalid truck ID" in str(exc_info.value)
+    
+    def test_enrich_order_items_exception_handling(self, order_service):
+        """Test: Cubrir líneas 104-109 - Exception en _enrich_order_items_with_product_info"""
+        from app.models.order import Order, OrderStatus
+        from app.models.order_item import OrderItem
+        
+        # Arrange
+        order = Order(
+            order_number="PED-001",
+            client_id="client-1",
+            vendor_id="vendor-1",
+            status=OrderStatus.RECIBIDO
+        )
+        
+        item1 = OrderItem(product_id=1, quantity=2)
+        item2 = OrderItem(product_id=2, quantity=3)
+        order.items = [item1, item2]
+        
+        # Mock del inventory_service para que lance excepción
+        order_service.inventory_service = MagicMock()
+        order_service.inventory_service.get_product_by_id.side_effect = Exception("Product not found")
+        
+        # Act
+        result = order_service._enrich_order_items_with_product_info(order)
+        
+        # Assert
+        assert result == order
+        # Verificar que los items tienen valores por defecto cuando hay error
+        for item in order.items:
+            assert item.product_name == ''
+            assert item.product_image_url == ''
+            assert item.unit_price == 0.0
+            assert item.product_sku == ''
+    
+    def test_create_order_empty_items_list(self, order_service, mock_order_repository):
+        """Test: Cubrir línea 138 - OrderValidationError cuando items está vacío"""
+        order_data = {
+            'client_id': '123e4567-e89b-12d3-a456-426614174000',
+            'vendor_id': '456e7890-e89b-12d3-a456-426614174001',
+            'total_amount': 150.0,
+            'scheduled_delivery_date': '2025-12-25T10:00:00Z',
+            'items': []  # Lista vacía
+        }
+
+        with pytest.raises(OrderValidationError) as exc_info:
+            order_service.create_order(order_data)
+        
+        assert "El pedido debe tener al menos un item" in str(exc_info.value)
