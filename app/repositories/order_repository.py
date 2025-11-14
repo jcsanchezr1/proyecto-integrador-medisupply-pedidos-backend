@@ -1,6 +1,7 @@
 """
 Repositorio para manejo de pedidos
 """
+import logging
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
@@ -8,6 +9,8 @@ from ..models.order import Order
 from ..models.order_item import OrderItem
 from ..models.db_models import OrderDB, OrderItemDB
 from .base_repository import BaseRepository
+
+logger = logging.getLogger(__name__)
 
 
 class OrderRepository(BaseRepository):
@@ -279,6 +282,147 @@ class OrderRepository(BaseRepository):
             return top_products
         except SQLAlchemyError as e:
             raise Exception(f"Error al obtener top productos: {str(e)}")
+    
+    def get_orders_status_summary_by_client_ids(self, client_ids: List[str]) -> List[dict]:
+        """
+        Obtiene resumen de pedidos por estado para múltiples clientes
+        
+        Args:
+            client_ids: Lista de IDs de clientes
+            
+        Returns:
+            Lista de diccionarios con status, count y total_amount
+        """
+        try:
+            from sqlalchemy import func
+            from ..models.db_models import OrderStatus
+            
+            if not client_ids:
+                logger.warning("[get_orders_status_summary_by_client_ids] Lista de client_ids vacía")
+                return []
+            
+            logger.info(f"[get_orders_status_summary_by_client_ids] Consultando pedidos para {len(client_ids)} clientes: {client_ids}")
+            results = self.session.query(
+                OrderDB.status.label('status'),
+                func.count(OrderDB.id).label('count'),
+                func.sum(OrderDB.total_amount).label('total_amount')
+            ).filter(
+                OrderDB.client_id.in_(client_ids)
+            ).group_by(
+                OrderDB.status
+            ).all()
+            logger.info(f"[get_orders_status_summary_by_client_ids] Resultados obtenidos: {len(results)} grupos")
+            
+            status_summary = []
+            for result in results:
+                status_summary.append({
+                    'status': result.status,
+                    'count': result.count or 0,
+                    'total_amount': float(result.total_amount or 0)
+                })
+            
+            return status_summary
+        except SQLAlchemyError as e:
+            raise Exception(f"Error al obtener resumen por estado: {str(e)}")
+    
+    def get_orders_monthly_summary_by_client_ids(self, client_ids: List[str], start_date, end_date) -> List[dict]:
+        """
+        Obtiene resumen mensual de pedidos para múltiples clientes
+        
+        Args:
+            client_ids: Lista de IDs de clientes
+            start_date: Fecha inicial
+            end_date: Fecha final
+            
+        Returns:
+            Lista de diccionarios con año, mes, orders_count y total_amount
+        """
+        try:
+            from sqlalchemy import func, extract
+            
+            if not client_ids:
+                return []
+            
+            results = self.session.query(
+                extract('year', OrderDB.created_at).label('year'),
+                extract('month', OrderDB.created_at).label('month'),
+                func.count(OrderDB.id).label('orders_count'),
+                func.sum(OrderDB.total_amount).label('total_amount')
+            ).filter(
+                OrderDB.client_id.in_(client_ids),
+                OrderDB.created_at >= start_date,
+                OrderDB.created_at <= end_date
+            ).group_by(
+                extract('year', OrderDB.created_at),
+                extract('month', OrderDB.created_at)
+            ).order_by(
+                extract('year', OrderDB.created_at),
+                extract('month', OrderDB.created_at)
+            ).all()
+            
+            monthly_data = []
+            for result in results:
+                monthly_data.append({
+                    'year': int(result.year),
+                    'month': int(result.month),
+                    'orders_count': result.orders_count or 0,
+                    'total_amount': float(result.total_amount or 0)
+                })
+            
+            return monthly_data
+        except SQLAlchemyError as e:
+            raise Exception(f"Error al obtener resumen mensual: {str(e)}")
+    
+    def get_clients_summary_by_client_ids(self, client_ids: List[str], limit: int, offset: int) -> tuple:
+        """
+        Obtiene resumen de pedidos por cliente con paginación
+        
+        Args:
+            client_ids: Lista de IDs de clientes
+            limit: Límite de resultados
+            offset: Offset para paginación
+            
+        Returns:
+            Tupla (lista de diccionarios con resumen por cliente, total de clientes)
+        """
+        try:
+            from sqlalchemy import func
+            
+            if not client_ids:
+                return [], 0
+            
+            total_query = self.session.query(
+                func.count(func.distinct(OrderDB.client_id))
+            ).filter(
+                OrderDB.client_id.in_(client_ids)
+            )
+            total = total_query.scalar() or 0
+            
+            results = self.session.query(
+                OrderDB.client_id.label('client_id'),
+                func.count(OrderDB.id).label('orders_count'),
+                func.sum(OrderDB.total_amount).label('total_amount'),
+                func.avg(OrderDB.total_amount).label('average_order_amount')
+            ).filter(
+                OrderDB.client_id.in_(client_ids)
+            ).group_by(
+                OrderDB.client_id
+            ).order_by(
+                func.sum(OrderDB.total_amount).desc()
+            ).offset(offset).limit(limit).all()
+            
+            clients_summary = []
+            for result in results:
+                clients_summary.append({
+                    'client_id': result.client_id,
+                    'orders_count': result.orders_count or 0,
+                    'total_amount': float(result.total_amount or 0),
+                    'average_order_amount': float(result.average_order_amount or 0)
+                })
+            
+            return clients_summary, total
+        except SQLAlchemyError as e:
+            raise Exception(f"Error al obtener resumen por clientes: {str(e)}")
     
     def _db_to_model(self, db_order: OrderDB) -> Order:
         """Convierte modelo de BD a modelo de dominio"""
