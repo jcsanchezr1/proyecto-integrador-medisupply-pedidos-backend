@@ -61,16 +61,16 @@ class TestAuthService:
         assert result is None
     
     def test_get_user_by_id_generic_exception(self, auth_service):
-        """Test: Excepción genérica"""
         user_id = 'user-123'
         
         with patch('app.services.auth_service.requests.get') as mock_get:
-            mock_get.side_effect = ValueError("Unexpected error")
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            mock_response.json.side_effect = KeyError("Unexpected error")
+            mock_get.return_value = mock_response
             
-
             result = auth_service.get_user_by_id(user_id)
         
-
         assert result is None
     
     def test_get_user_by_id_flat_data(self, auth_service):
@@ -188,4 +188,102 @@ class TestAuthService:
         assert 'user-2' in result
         assert None not in result
         assert '' not in result
+    
+    def test_get_assigned_clients_success(self, auth_service):
+        seller_id = 'seller-123'
+        expected_clients = [
+            {'id': 'client-1', 'name': 'Cliente Uno'},
+            {'id': 'client-2', 'name': 'Cliente Dos'}
+        ]
+        
+        with patch('app.services.auth_service.requests.get') as mock_get:
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            mock_response.json.return_value = {
+                'data': {
+                    'assigned_clients': expected_clients
+                }
+            }
+            mock_get.return_value = mock_response
+            
+            result = auth_service.get_assigned_clients(seller_id)
+        
+        assert result == ['client-1', 'client-2']
+        mock_get.assert_called_once_with(f"http://test-auth:8080/auth/assigned-clients/{seller_id}", timeout=5)
+    
+    def test_get_assigned_clients_not_found(self, auth_service):
+        seller_id = 'seller-123'
+        
+        with patch('app.services.auth_service.requests.get') as mock_get:
+            mock_response = MagicMock()
+            mock_response.status_code = 404
+            mock_get.return_value = mock_response
+            
+            result = auth_service.get_assigned_clients(seller_id)
+        
+        assert result == []
+    
+    def test_get_assigned_clients_empty_list(self, auth_service):
+        seller_id = 'seller-123'
+        
+        with patch('app.services.auth_service.requests.get') as mock_get:
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            mock_response.json.return_value = {
+                'data': {
+                    'assigned_clients': []
+                }
+            }
+            mock_get.return_value = mock_response
+            
+            result = auth_service.get_assigned_clients(seller_id)
+        
+        assert result == []
+    
+    def test_get_assigned_clients_without_id_field(self, auth_service):
+        seller_id = 'seller-123'
+        clients_without_id = [
+            {'name': 'Cliente Uno'},
+            {'id': 'client-2', 'name': 'Cliente Dos'}
+        ]
+        
+        with patch('app.services.auth_service.requests.get') as mock_get:
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            mock_response.json.return_value = {
+                'data': {
+                    'assigned_clients': clients_without_id
+                }
+            }
+            mock_get.return_value = mock_response
+            
+            result = auth_service.get_assigned_clients(seller_id)
+        
+        assert result == ['client-2']
+    
+    def test_get_assigned_clients_request_exception(self, auth_service):
+        seller_id = 'seller-123'
+        
+        with patch('app.services.auth_service.requests.get') as mock_get:
+            mock_get.side_effect = requests.exceptions.RequestException("Connection error")
+            
+            result = auth_service.get_assigned_clients(seller_id)
+        
+        assert result == []
+    
+    def test_get_assigned_clients_generic_exception(self, auth_service):
+        seller_id = 'seller-123'
+        
+        with patch('app.services.auth_service.requests.get') as mock_get:
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            mock_response.json.return_value = {'data': {'assigned_clients': [{'id': 'client-1'}]}}
+            mock_get.return_value = mock_response
+            
+            with patch('app.services.auth_service.logger') as mock_logger:
+                mock_logger.info.side_effect = Exception("Unexpected error in logger")
+                
+                result = auth_service.get_assigned_clients(seller_id)
+        
+        assert result == []
 
