@@ -59,4 +59,23 @@ class TestAuthIntegration:
 
         assert result == expected_names
         assert result['client-2'] == 'Cliente no disponible'
+    
+    def test_get_assigned_clients_success(self, auth_integration, mock_auth_service):
+        seller_id = 'seller-123'
+        expected_client_ids = ['client-1', 'client-2', 'client-3']
+        mock_auth_service.get_assigned_clients.return_value = expected_client_ids
+        
+        result = auth_integration.get_assigned_clients(seller_id)
+        
+        assert result == expected_client_ids
+        mock_auth_service.get_assigned_clients.assert_called_once_with(seller_id)
+    
+    def test_get_assigned_clients_empty_list(self, auth_integration, mock_auth_service):
+        seller_id = 'seller-123'
+        mock_auth_service.get_assigned_clients.return_value = []
+        
+        result = auth_integration.get_assigned_clients(seller_id)
+        
+        assert result == []
+        mock_auth_service.get_assigned_clients.assert_called_once_with(seller_id)
 
