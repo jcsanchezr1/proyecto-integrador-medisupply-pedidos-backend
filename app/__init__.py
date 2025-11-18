@@ -2,9 +2,15 @@
 Aplicación principal del sistema de pedidos MediSupply
 """
 import os
+import logging
 from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 
 def create_app():
@@ -35,6 +41,7 @@ def configure_routes(app):
     from .controllers.order_create_controller import OrderCreateController
     from .controllers.order_truck_controller import OrderTruckController
     from .controllers.order_report_controller import OrderMonthlyReportController, OrderTopClientsController, OrderTopProductsController
+    from .controllers.order_informes_controller import OrderSellerStatusSummaryController, OrderSellerClientsSummaryController, OrderSellerMonthlyController
     
     api = Api(app)
     
@@ -51,3 +58,8 @@ def configure_routes(app):
     api.add_resource(OrderMonthlyReportController, '/orders/reports/monthly')
     api.add_resource(OrderTopClientsController, '/orders/reports/top-clients')
     api.add_resource(OrderTopProductsController, '/orders/reports/top-products')
+    
+    # Informes por vendedor endpoints
+    api.add_resource(OrderSellerStatusSummaryController, '/orders/informes/seller/status-summary')
+    api.add_resource(OrderSellerClientsSummaryController, '/orders/informes/seller/clients-summary')
+    api.add_resource(OrderSellerMonthlyController, '/orders/informes/seller/monthly')

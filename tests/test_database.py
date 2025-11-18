@@ -200,3 +200,67 @@ class TestDatabase:
             
             # Verificar que se crearon dos sesiones separadas
             assert mock_session_local.call_count == 2
+    
+    def test_auto_close_session_exception_closing_existing(self):
+        from app.config.database import auto_close_session
+        
+        class TestController:
+            def __init__(self):
+                self.order_repository = MagicMock()
+                self.order_repository.session = MagicMock()
+                self.order_repository.session.close = MagicMock(side_effect=Exception("Error closing"))
+            
+            @auto_close_session
+            def test_method(self):
+                return "success"
+        
+        controller = TestController()
+        with patch('app.config.database.SessionLocal') as mock_session_local:
+            mock_session = MagicMock()
+            mock_session_local.return_value = mock_session
+            
+            result = controller.test_method()
+            
+            assert result == "success"
+            controller.order_repository.session.close.assert_called_once()
+    
+    def test_auto_close_session_exception_in_finally(self):
+        from app.config.database import auto_close_session
+        
+        class TestController:
+            def __init__(self):
+                self.order_repository = MagicMock()
+            
+            @auto_close_session
+            def test_method(self):
+                return "success"
+        
+        controller = TestController()
+        with patch('app.config.database.SessionLocal') as mock_session_local:
+            mock_session = MagicMock()
+            mock_session.close = MagicMock(side_effect=Exception("Error in finally"))
+            mock_session_local.return_value = mock_session
+            
+            result = controller.test_method()
+            
+            assert result == "success"
+            mock_session.close.assert_called_once()
+    
+    def test_auto_close_session_with_mocked_service(self):
+        from app.config.database import auto_close_session
+        
+        class TestController:
+            def __init__(self):
+                from unittest.mock import Mock
+                self.order_service = Mock()
+                self.order_service.__class__.__module__ = 'unittest.mock'
+                self.order_service.__class__.__name__ = 'Mock'
+            
+            @auto_close_session
+            def test_method(self):
+                return "success"
+        
+        controller = TestController()
+        result = controller.test_method()
+        
+        assert result == "success"

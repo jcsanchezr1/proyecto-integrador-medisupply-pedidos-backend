@@ -26,4 +26,17 @@ class AuthIntegration:
         """
         logger.info(f"Obteniendo nombres para {len(client_ids)} clientes")
         return self.auth_service.get_users_by_ids(client_ids)
+    
+    def get_assigned_clients(self, seller_id: str) -> List[str]:
+        """
+        Obtiene la lista de client_id asignados a un vendedor
+        
+        Args:
+            seller_id: ID del vendedor
+            
+        Returns:
+            Lista de client_id asignados
+        """
+        logger.info(f"Obteniendo clientes asignados para vendedor {seller_id}")
+        return self.auth_service.get_assigned_clients(seller_id)
 

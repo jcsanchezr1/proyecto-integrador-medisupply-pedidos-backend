@@ -7,6 +7,7 @@ import requests
 import os
 from ..models.order import Order
 from ..models.order_item import OrderItem
+from ..models.db_models import OrderStatus
 from ..repositories.order_repository import OrderRepository
 from ..exceptions.custom_exceptions import OrderNotFoundError, OrderValidationError, OrderBusinessLogicError
 from .inventory_service import InventoryService
@@ -380,3 +381,260 @@ class OrderService:
         except Exception as e:
             logger.error(f"Error al generar reporte de top productos: {str(e)}")
             raise OrderBusinessLogicError(f"Error al generar reporte de top productos: {str(e)}")
+    
+    def get_seller_status_summary(self, seller_id: str) -> dict:
+        """
+        Obtiene el resumen de pedidos por estado para los clientes asignados a un vendedor
+        
+        Args:
+            seller_id: ID del vendedor
+            
+        Returns:
+            Diccionario con seller_id, summary y status_summary
+        """
+        try:
+            logger.info(f"[get_seller_status_summary] Obteniendo clientes asignados para vendedor {seller_id}")
+            client_ids = self.auth_integration.get_assigned_clients(seller_id)
+            logger.info(f"[get_seller_status_summary] Client IDs obtenidos: {client_ids}, cantidad: {len(client_ids) if client_ids else 0}")
+            
+            if not client_ids:
+                logger.warning(f"[get_seller_status_summary] No se encontraron clientes asignados para vendedor {seller_id}")
+                status_summary = []
+                for status_enum in OrderStatus:
+                    status_summary.append({
+                        'status': status_enum.value,
+                        'count': 0,
+                        'percentage': 0.0,
+                        'total_amount': 0.0
+                    })
+                return {
+                    'seller_id': seller_id,
+                    'summary': {
+                        'total_orders': 0,
+                        'total_amount': 0.0
+                    },
+                    'status_summary': status_summary
+                }
+            
+            logger.info(f"[get_seller_status_summary] Consultando resumen de pedidos para {len(client_ids)} clientes: {client_ids}")
+            status_data = self.order_repository.get_orders_status_summary_by_client_ids(client_ids)
+            logger.info(f"[get_seller_status_summary] Datos de estado obtenidos: {len(status_data)} estados, datos: {status_data}")
+            
+            total_orders = sum(item['count'] for item in status_data)
+            total_amount = sum(item['total_amount'] for item in status_data)
+            
+            status_data_dict = {item['status']: item for item in status_data}
+            
+            status_summary = []
+            for status_enum in OrderStatus:
+                status_value = status_enum.value
+                if status_value in status_data_dict:
+                    item = status_data_dict[status_value]
+                    percentage = (item['count'] / total_orders * 100) if total_orders > 0 else 0.0
+                    status_summary.append({
+                        'status': status_value,
+                        'count': item['count'],
+                        'percentage': round(percentage, 2),
+                        'total_amount': round(item['total_amount'], 2)
+                    })
+                else:
+                    status_summary.append({
+                        'status': status_value,
+                        'count': 0,
+                        'percentage': 0.0,
+                        'total_amount': 0.0
+                    })
+            
+            return {
+                'seller_id': seller_id,
+                'summary': {
+                    'total_orders': total_orders,
+                    'total_amount': round(total_amount, 2)
+                },
+                'status_summary': status_summary
+            }
+            
+        except Exception as e:
+            logger.error(f"Error al generar informe de estados por vendedor: {str(e)}")
+            raise OrderBusinessLogicError(f"Error al generar informe de estados por vendedor: {str(e)}")
+    
+    def get_seller_clients_summary(self, seller_id: str, page: int = 1, per_page: int = 10) -> dict:
+        """
+        Obtiene el resumen de pedidos por cliente para los clientes asignados a un vendedor
+        
+        Args:
+            seller_id: ID del vendedor
+            page: Número de página (default: 1)
+            per_page: Elementos por página (default: 10)
+            
+        Returns:
+            Diccionario con seller_id, summary, clients y pagination
+        """
+        try:
+            client_ids = self.auth_integration.get_assigned_clients(seller_id)
+            
+            if not client_ids:
+                return {
+                    'seller_id': seller_id,
+                    'summary': {
+                        'total_clients': 0,
+                        'total_orders': 0,
+                        'total_amount': 0.0
+                    },
+                    'clients': [],
+                    'pagination': {
+                        'page': page,
+                        'per_page': per_page,
+                        'total': 0,
+                        'total_pages': 0,
+                        'has_next': False,
+                        'has_prev': False,
+                        'next_page': None,
+                        'prev_page': None
+                    }
+                }
+            
+            offset = (page - 1) * per_page
+            clients_data, total = self.order_repository.get_clients_summary_by_client_ids(
+                client_ids, per_page, offset
+            )
+            
+            client_ids_list = [client['client_id'] for client in clients_data]
+            client_names = self.auth_integration.get_client_names(client_ids_list)
+            
+            clients = []
+            total_orders = 0
+            total_amount = 0.0
+            
+            for client_data in clients_data:
+                client_id = client_data['client_id']
+                total_orders += client_data['orders_count']
+                total_amount += client_data['total_amount']
+                
+                clients.append({
+                    'client_id': client_id,
+                    'client_name': client_names.get(client_id, 'Cliente no disponible'),
+                    'orders_count': client_data['orders_count'],
+                    'total_amount': round(client_data['total_amount'], 2),
+                    'average_order_amount': round(client_data['average_order_amount'], 2)
+                })
+            
+            total_pages = (total + per_page - 1) // per_page if per_page > 0 else 1
+            has_next = page < total_pages
+            has_prev = page > 1
+            
+            return {
+                'seller_id': seller_id,
+                'summary': {
+                    'total_clients': total,
+                    'total_orders': total_orders,
+                    'total_amount': round(total_amount, 2)
+                },
+                'clients': clients,
+                'pagination': {
+                    'page': page,
+                    'per_page': per_page,
+                    'total': total,
+                    'total_pages': total_pages,
+                    'has_next': has_next,
+                    'has_prev': has_prev,
+                    'next_page': page + 1 if has_next else None,
+                    'prev_page': page - 1 if has_prev else None
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Error al generar informe de clientes por vendedor: {str(e)}")
+            raise OrderBusinessLogicError(f"Error al generar informe de clientes por vendedor: {str(e)}")
+    
+    def get_seller_monthly_report(self, seller_id: str) -> dict:
+        """
+        Obtiene el reporte mensual de pedidos para los clientes asignados a un vendedor
+        
+        Args:
+            seller_id: ID del vendedor
+            
+        Returns:
+            Diccionario con seller_id, period, summary y monthly_data
+        """
+        try:
+            from datetime import datetime, timedelta
+            from dateutil.relativedelta import relativedelta
+            
+            client_ids = self.auth_integration.get_assigned_clients(seller_id)
+            
+            end_date = datetime.now()
+            start_date = end_date - relativedelta(months=11)
+            start_date = start_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            
+            logger.info(f"Generando informe mensual para vendedor {seller_id} desde {start_date.date()} hasta {end_date.date()}")
+            
+            monthly_raw_data = []
+            if client_ids:
+                monthly_raw_data = self.order_repository.get_orders_monthly_summary_by_client_ids(
+                    client_ids, start_date, end_date
+                )
+            
+            data_by_month = {}
+            for item in monthly_raw_data:
+                key = f"{item['year']}-{item['month']}"
+                data_by_month[key] = item
+            
+            monthly_data = []
+            current_date = end_date.replace(day=1)
+            
+            month_names = {
+                1: "enero", 2: "febrero", 3: "marzo", 4: "abril",
+                5: "mayo", 6: "junio", 7: "julio", 8: "agosto",
+                9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre"
+            }
+            month_names_short = {
+                1: "ene", 2: "feb", 3: "mar", 4: "abr",
+                5: "may", 6: "jun", 7: "jul", 8: "ago",
+                9: "sep", 10: "oct", 11: "nov", 12: "dic"
+            }
+            
+            for i in range(12):
+                year = current_date.year
+                month = current_date.month
+                key = f"{year}-{month}"
+                
+                month_data = data_by_month.get(key, {
+                    'year': year,
+                    'month': month,
+                    'orders_count': 0,
+                    'total_amount': 0.0
+                })
+                
+                monthly_data.append({
+                    'year': year,
+                    'month': month,
+                    'month_name': month_names[month],
+                    'month_short': month_names_short[month],
+                    'label': f"{month_names_short[month]}-{year}",
+                    'orders_count': month_data['orders_count'],
+                    'total_amount': round(month_data['total_amount'], 2)
+                })
+                
+                current_date = current_date - relativedelta(months=1)
+            
+            total_orders = sum(m['orders_count'] for m in monthly_data)
+            total_amount = sum(m['total_amount'] for m in monthly_data)
+            
+            return {
+                'seller_id': seller_id,
+                'period': {
+                    'start_date': start_date.date().isoformat(),
+                    'end_date': end_date.date().isoformat(),
+                    'months': 12
+                },
+                'summary': {
+                    'total_orders': total_orders,
+                    'total_amount': round(total_amount, 2)
+                },
+                'monthly_data': monthly_data
+            }
+            
+        except Exception as e:
+            logger.error(f"Error al generar informe mensual por vendedor: {str(e)}")
+            raise OrderBusinessLogicError(f"Error al generar informe mensual por vendedor: {str(e)}")

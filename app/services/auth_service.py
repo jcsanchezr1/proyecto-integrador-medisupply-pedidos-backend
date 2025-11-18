@@ -4,7 +4,7 @@ Servicio para comunicación con el servicio de autenticación
 import os
 import logging
 import requests
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 logger = logging.getLogger(__name__)
 
@@ -83,4 +83,39 @@ class AuthService:
                 continue
             user_names[user_id] = self.get_user_name(user_id)
         return user_names
+    
+    def get_assigned_clients(self, seller_id: str) -> List[str]:
+        """
+        Obtiene la lista de client_id asignados a un vendedor
+        
+        Args:
+            seller_id: ID del vendedor
+            
+        Returns:
+            Lista de client_id asignados
+        """
+        try:
+            response = requests.get(
+                f"{self.base_url}/auth/assigned-clients/{seller_id}",
+                timeout=5
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                assigned_clients_data = data.get('data', {}).get('assigned_clients', [])
+                client_ids = [client.get('id') for client in assigned_clients_data if client.get('id')]
+                logger.info(f"Client IDs obtenidos para vendedor {seller_id}: {client_ids}")
+                return client_ids
+            else:
+                logger.warning(f"Vendedor {seller_id} no encontrado o sin clientes asignados (status: {response.status_code})")
+                return []
+                
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error de conexión obteniendo clientes asignados para vendedor {seller_id}: {str(e)}")
+            logger.exception(e)
+            return []
+        except Exception as e:
+            logger.error(f"Error inesperado obteniendo clientes asignados para vendedor {seller_id}: {str(e)}")
+            logger.exception(e)
+            return []
 
