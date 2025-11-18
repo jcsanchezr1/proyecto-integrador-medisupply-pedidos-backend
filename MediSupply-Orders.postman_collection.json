@@ -2006,6 +2006,828 @@
 			"response": []
 		},
 		{
+			"name": "Informe de Estados por Vendedor - Exitoso",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log('Obteniendo informe de estados por vendedor...');",
+							"if (!pm.environment.get('test_seller_id')) {",
+							"    pm.environment.set('test_seller_id', '384091e2-2447-43a6-9dd6-e111ef428eb2');",
+							"    console.log('Seller ID configurado:', pm.environment.get('test_seller_id'));",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response is JSON', function () {",
+							"    pm.response.to.be.json;",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"    pm.expect(response.success).to.be.true;",
+							"});",
+							"pm.test('Data has required structure', function () {",
+							"    const response = pm.response.json();",
+							"    const data = response.data;",
+							"    pm.expect(data).to.have.property('seller_id');",
+							"    pm.expect(data).to.have.property('summary');",
+							"    pm.expect(data).to.have.property('status_summary');",
+							"    pm.expect(data.status_summary).to.be.an('array');",
+							"});",
+							"pm.test('Summary has required fields', function () {",
+							"    const response = pm.response.json();",
+							"    const summary = response.data.summary;",
+							"    pm.expect(summary).to.have.property('total_orders');",
+							"    pm.expect(summary).to.have.property('total_amount');",
+							"});",
+							"pm.test('Status summary includes all possible statuses', function () {",
+							"    const response = pm.response.json();",
+							"    const statusSummary = response.data.status_summary;",
+							"    const expectedStatuses = ['Recibido', 'En Preparación', 'En Tránsito', 'Entregado', 'Devuelto'];",
+							"    const receivedStatuses = statusSummary.map(s => s.status);",
+							"    expectedStatuses.forEach(status => {",
+							"        pm.expect(receivedStatuses).to.include(status);",
+							"    });",
+							"});",
+							"pm.test('Each status item has required fields', function () {",
+							"    const response = pm.response.json();",
+							"    const statusSummary = response.data.status_summary;",
+							"    statusSummary.forEach(item => {",
+							"        pm.expect(item).to.have.property('status');",
+							"        pm.expect(item).to.have.property('count');",
+							"        pm.expect(item).to.have.property('percentage');",
+							"        pm.expect(item).to.have.property('total_amount');",
+							"    });",
+							"});",
+							"pm.test('Percentages sum to 100 or 0 (when no orders)', function () {",
+							"    const response = pm.response.json();",
+							"    const statusSummary = response.data.status_summary;",
+							"    const totalOrders = response.data.summary.total_orders;",
+							"    const totalPercentage = statusSummary.reduce((sum, item) => sum + item.percentage, 0);",
+							"    if (totalOrders === 0) {",
+							"        pm.expect(totalPercentage).to.eql(0);",
+							"    } else {",
+							"        pm.expect(totalPercentage).to.be.closeTo(100, 0.01);",
+							"    }",
+							"});",
+							"console.log('Informe de estados por vendedor obtenido correctamente');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_pedidos}}/orders/informes/seller/status-summary?seller_id={{test_seller_id}}",
+					"host": [
+						"{{url_local_pedidos}}"
+					],
+					"path": [
+						"orders",
+						"informes",
+						"seller",
+						"status-summary"
+					],
+					"query": [
+						{
+							"key": "seller_id",
+							"value": "{{test_seller_id}}",
+							"description": "ID del vendedor"
+						}
+					]
+				},
+				"description": "Obtiene el resumen de pedidos por estado para los clientes asignados a un vendedor"
+			},
+			"response": []
+		},
+		{
+			"name": "Informe de Clientes por Vendedor - Exitoso",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log('Obteniendo informe de clientes por vendedor...');",
+							"if (!pm.environment.get('test_seller_id')) {",
+							"    pm.environment.set('test_seller_id', '384091e2-2447-43a6-9dd6-e111ef428eb2');",
+							"    console.log('Seller ID configurado:', pm.environment.get('test_seller_id'));",
+							"}",
+							"pm.environment.set('test_page', '1');",
+							"pm.environment.set('test_per_page', '10');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response is JSON', function () {",
+							"    pm.response.to.be.json;",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"    pm.expect(response.success).to.be.true;",
+							"});",
+							"pm.test('Data has required structure', function () {",
+							"    const response = pm.response.json();",
+							"    const data = response.data;",
+							"    pm.expect(data).to.have.property('seller_id');",
+							"    pm.expect(data).to.have.property('summary');",
+							"    pm.expect(data).to.have.property('clients');",
+							"    pm.expect(data).to.have.property('pagination');",
+							"    pm.expect(data.clients).to.be.an('array');",
+							"});",
+							"pm.test('Summary has required fields', function () {",
+							"    const response = pm.response.json();",
+							"    const summary = response.data.summary;",
+							"    pm.expect(summary).to.have.property('total_clients');",
+							"    pm.expect(summary).to.have.property('total_orders');",
+							"    pm.expect(summary).to.have.property('total_amount');",
+							"});",
+							"pm.test('Pagination has required fields', function () {",
+							"    const response = pm.response.json();",
+							"    const pagination = response.data.pagination;",
+							"    pm.expect(pagination).to.have.property('page');",
+							"    pm.expect(pagination).to.have.property('per_page');",
+							"    pm.expect(pagination).to.have.property('total');",
+							"    pm.expect(pagination).to.have.property('total_pages');",
+							"    pm.expect(pagination).to.have.property('has_next');",
+							"    pm.expect(pagination).to.have.property('has_prev');",
+							"});",
+							"pm.test('Each client item has required fields', function () {",
+							"    const response = pm.response.json();",
+							"    const clients = response.data.clients;",
+							"    clients.forEach(client => {",
+							"        pm.expect(client).to.have.property('client_id');",
+							"        pm.expect(client).to.have.property('client_name');",
+							"        pm.expect(client).to.have.property('orders_count');",
+							"        pm.expect(client).to.have.property('total_amount');",
+							"        pm.expect(client).to.have.property('average_order_amount');",
+							"    });",
+							"});",
+							"console.log('Informe de clientes por vendedor obtenido correctamente');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_pedidos}}/orders/informes/seller/clients-summary?seller_id={{test_seller_id}}&page={{test_page}}&per_page={{test_per_page}}",
+					"host": [
+						"{{url_local_pedidos}}"
+					],
+					"path": [
+						"orders",
+						"informes",
+						"seller",
+						"clients-summary"
+					],
+					"query": [
+						{
+							"key": "seller_id",
+							"value": "{{test_seller_id}}",
+							"description": "ID del vendedor"
+						},
+						{
+							"key": "page",
+							"value": "{{test_page}}",
+							"description": "Número de página"
+						},
+						{
+							"key": "per_page",
+							"value": "{{test_per_page}}",
+							"description": "Elementos por página"
+						}
+					]
+				},
+				"description": "Obtiene el resumen de pedidos por cliente para los clientes asignados a un vendedor con paginación"
+			},
+			"response": []
+		},
+		{
+			"name": "Informe Mensual por Vendedor - Exitoso",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log('Obteniendo informe mensual por vendedor...');",
+							"if (!pm.environment.get('test_seller_id')) {",
+							"    pm.environment.set('test_seller_id', '384091e2-2447-43a6-9dd6-e111ef428eb2');",
+							"    console.log('Seller ID configurado:', pm.environment.get('test_seller_id'));",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response is JSON', function () {",
+							"    pm.response.to.be.json;",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"    pm.expect(response.success).to.be.true;",
+							"});",
+							"pm.test('Data has required structure', function () {",
+							"    const response = pm.response.json();",
+							"    const data = response.data;",
+							"    pm.expect(data).to.have.property('seller_id');",
+							"    pm.expect(data).to.have.property('period');",
+							"    pm.expect(data).to.have.property('summary');",
+							"    pm.expect(data).to.have.property('monthly_data');",
+							"    pm.expect(data.monthly_data).to.be.an('array');",
+							"});",
+							"pm.test('Period has required fields', function () {",
+							"    const response = pm.response.json();",
+							"    const period = response.data.period;",
+							"    pm.expect(period).to.have.property('start_date');",
+							"    pm.expect(period).to.have.property('end_date');",
+							"    pm.expect(period).to.have.property('months');",
+							"    pm.expect(period.months).to.eql(12);",
+							"});",
+							"pm.test('Summary has required fields', function () {",
+							"    const response = pm.response.json();",
+							"    const summary = response.data.summary;",
+							"    pm.expect(summary).to.have.property('total_orders');",
+							"    pm.expect(summary).to.have.property('total_amount');",
+							"});",
+							"pm.test('Monthly data has exactly 12 months', function () {",
+							"    const response = pm.response.json();",
+							"    const monthlyData = response.data.monthly_data;",
+							"    pm.expect(monthlyData.length).to.eql(12);",
+							"});",
+							"pm.test('Each month item has required fields', function () {",
+							"    const response = pm.response.json();",
+							"    const monthlyData = response.data.monthly_data;",
+							"    monthlyData.forEach(month => {",
+							"        pm.expect(month).to.have.property('year');",
+							"        pm.expect(month).to.have.property('month');",
+							"        pm.expect(month).to.have.property('month_name');",
+							"        pm.expect(month).to.have.property('month_short');",
+							"        pm.expect(month).to.have.property('label');",
+							"        pm.expect(month).to.have.property('orders_count');",
+							"        pm.expect(month).to.have.property('total_amount');",
+							"    });",
+							"});",
+							"pm.test('Months are ordered from current to past', function () {",
+							"    const response = pm.response.json();",
+							"    const monthlyData = response.data.monthly_data;",
+							"    for (let i = 1; i < monthlyData.length; i++) {",
+							"        const current = monthlyData[i - 1];",
+							"        const previous = monthlyData[i];",
+							"        const currentDate = new Date(current.year, current.month - 1);",
+							"        const previousDate = new Date(previous.year, previous.month - 1);",
+							"        pm.expect(currentDate.getTime()).to.be.above(previousDate.getTime());",
+							"    }",
+							"});",
+							"console.log('Informe mensual por vendedor obtenido correctamente');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_pedidos}}/orders/informes/seller/monthly?seller_id={{test_seller_id}}",
+					"host": [
+						"{{url_local_pedidos}}"
+					],
+					"path": [
+						"orders",
+						"informes",
+						"seller",
+						"monthly"
+					],
+					"query": [
+						{
+							"key": "seller_id",
+							"value": "{{test_seller_id}}",
+							"description": "ID del vendedor"
+						}
+					]
+				},
+				"description": "Obtiene el reporte mensual de pedidos para los clientes asignados a un vendedor (últimos 12 meses desde hoy hacia atrás)"
+			},
+			"response": []
+		},
+		{
+			"name": "Informe de Estados por Vendedor - Vendedor No Existe",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log('Probando informe de estados con vendedor inexistente...');",
+							"pm.environment.set('test_seller_id_invalid', '00000000-0000-0000-0000-000000000000');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200 (vendedor sin clientes o sin pedidos)', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response is JSON', function () {",
+							"    pm.response.to.be.json;",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('data');",
+							"});",
+							"pm.test('Status summary includes all statuses with zero values', function () {",
+							"    const response = pm.response.json();",
+							"    if (response.success && response.data.status_summary) {",
+							"        const statusSummary = response.data.status_summary;",
+							"        const expectedStatuses = ['Recibido', 'En Preparación', 'En Tránsito', 'Entregado', 'Devuelto'];",
+							"        pm.expect(statusSummary.length).to.eql(5);",
+							"        statusSummary.forEach(item => {",
+							"            pm.expect(item.count).to.eql(0);",
+							"            pm.expect(item.percentage).to.eql(0.0);",
+							"            pm.expect(item.total_amount).to.eql(0.0);",
+							"        });",
+							"    }",
+							"});",
+							"console.log('Informe de estados con vendedor inexistente validado');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_pedidos}}/orders/informes/seller/status-summary?seller_id={{test_seller_id_invalid}}",
+					"host": [
+						"{{url_local_pedidos}}"
+					],
+					"path": [
+						"orders",
+						"informes",
+						"seller",
+						"status-summary"
+					],
+					"query": [
+						{
+							"key": "seller_id",
+							"value": "{{test_seller_id_invalid}}",
+							"description": "ID del vendedor inexistente"
+						}
+					]
+				},
+				"description": "Prueba el informe de estados con un vendedor que no existe o no tiene clientes asignados"
+			},
+			"response": []
+		},
+		{
+			"name": "Informe de Estados por Vendedor - Sin Seller ID",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log('Probando informe de estados sin seller_id...');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 400 (Bad Request)', function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"pm.test('Response has error message', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('error');",
+							"});",
+							"console.log('Validación de seller_id requerido confirmada');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_pedidos}}/orders/informes/seller/status-summary",
+					"host": [
+						"{{url_local_pedidos}}"
+					],
+					"path": [
+						"orders",
+						"informes",
+						"seller",
+						"status-summary"
+					]
+				},
+				"description": "Prueba el informe de estados sin proporcionar seller_id (debe retornar error 400)"
+			},
+			"response": []
+		},
+		{
+			"name": "Informe de Clientes por Vendedor - Vendedor No Existe",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log('Probando informe de clientes con vendedor inexistente...');",
+							"pm.environment.set('test_seller_id_invalid', '00000000-0000-0000-0000-000000000000');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200 (vendedor sin clientes)', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response is JSON', function () {",
+							"    pm.response.to.be.json;",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('data');",
+							"});",
+							"pm.test('Clients array is empty', function () {",
+							"    const response = pm.response.json();",
+							"    if (response.success && response.data.clients) {",
+							"        pm.expect(response.data.clients).to.be.an('array');",
+							"        pm.expect(response.data.clients.length).to.eql(0);",
+							"    }",
+							"});",
+							"pm.test('Summary shows zero values', function () {",
+							"    const response = pm.response.json();",
+							"    if (response.success && response.data.summary) {",
+							"        pm.expect(response.data.summary.total_clients).to.eql(0);",
+							"        pm.expect(response.data.summary.total_orders).to.eql(0);",
+							"        pm.expect(response.data.summary.total_amount).to.eql(0.0);",
+							"    }",
+							"});",
+							"console.log('Informe de clientes con vendedor inexistente validado');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_pedidos}}/orders/informes/seller/clients-summary?seller_id={{test_seller_id_invalid}}&page=1&per_page=10",
+					"host": [
+						"{{url_local_pedidos}}"
+					],
+					"path": [
+						"orders",
+						"informes",
+						"seller",
+						"clients-summary"
+					],
+					"query": [
+						{
+							"key": "seller_id",
+							"value": "{{test_seller_id_invalid}}",
+							"description": "ID del vendedor inexistente"
+						},
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "per_page",
+							"value": "10"
+						}
+					]
+				},
+				"description": "Prueba el informe de clientes con un vendedor que no existe o no tiene clientes asignados"
+			},
+			"response": []
+		},
+		{
+			"name": "Informe de Clientes por Vendedor - Sin Seller ID",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log('Probando informe de clientes sin seller_id...');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 400 (Bad Request)', function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"pm.test('Response has error message', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('error');",
+							"});",
+							"console.log('Validación de seller_id requerido confirmada');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_pedidos}}/orders/informes/seller/clients-summary?page=1&per_page=10",
+					"host": [
+						"{{url_local_pedidos}}"
+					],
+					"path": [
+						"orders",
+						"informes",
+						"seller",
+						"clients-summary"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "per_page",
+							"value": "10"
+						}
+					]
+				},
+				"description": "Prueba el informe de clientes sin proporcionar seller_id (debe retornar error 400)"
+			},
+			"response": []
+		},
+		{
+			"name": "Informe Mensual por Vendedor - Vendedor No Existe",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log('Probando informe mensual con vendedor inexistente...');",
+							"pm.environment.set('test_seller_id_invalid', '00000000-0000-0000-0000-000000000000');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200 (vendedor sin clientes o sin pedidos)', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response is JSON', function () {",
+							"    pm.response.to.be.json;",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('data');",
+							"});",
+							"pm.test('Monthly data has exactly 12 months', function () {",
+							"    const response = pm.response.json();",
+							"    if (response.success && response.data.monthly_data) {",
+							"        pm.expect(response.data.monthly_data.length).to.eql(12);",
+							"    }",
+							"});",
+							"pm.test('All months have zero values', function () {",
+							"    const response = pm.response.json();",
+							"    if (response.success && response.data.monthly_data) {",
+							"        response.data.monthly_data.forEach(month => {",
+							"            pm.expect(month.orders_count).to.eql(0);",
+							"            pm.expect(month.total_amount).to.eql(0.0);",
+							"        });",
+							"    }",
+							"});",
+							"pm.test('Summary shows zero values', function () {",
+							"    const response = pm.response.json();",
+							"    if (response.success && response.data.summary) {",
+							"        pm.expect(response.data.summary.total_orders).to.eql(0);",
+							"        pm.expect(response.data.summary.total_amount).to.eql(0.0);",
+							"    }",
+							"});",
+							"console.log('Informe mensual con vendedor inexistente validado');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_pedidos}}/orders/informes/seller/monthly?seller_id={{test_seller_id_invalid}}",
+					"host": [
+						"{{url_local_pedidos}}"
+					],
+					"path": [
+						"orders",
+						"informes",
+						"seller",
+						"monthly"
+					],
+					"query": [
+						{
+							"key": "seller_id",
+							"value": "{{test_seller_id_invalid}}",
+							"description": "ID del vendedor inexistente"
+						}
+					]
+				},
+				"description": "Prueba el informe mensual con un vendedor que no existe o no tiene clientes asignados"
+			},
+			"response": []
+		},
+		{
+			"name": "Informe Mensual por Vendedor - Sin Seller ID",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log('Probando informe mensual sin seller_id...');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 400 (Bad Request)', function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"pm.test('Response has error message', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('error');",
+							"});",
+							"console.log('Validación de seller_id requerido confirmada');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_pedidos}}/orders/informes/seller/monthly",
+					"host": [
+						"{{url_local_pedidos}}"
+					],
+					"path": [
+						"orders",
+						"informes",
+						"seller",
+						"monthly"
+					]
+				},
+				"description": "Prueba el informe mensual sin proporcionar seller_id (debe retornar error 400)"
+			},
+			"response": []
+		},
+		{
 			"name": "Limpiar Producto 2 de Prueba",
 			"event": [
 				{
